@@ -10,7 +10,7 @@ public class ConfManager {
 	}
 	public static void addResource(String path){
 	conf.addResource(new Path("/usr/conf/Monitor_conf.xml"));
-	//conf.addResource(new Path("c:\\Monitor_conf.xml"));
+	conf.addResource(new Path("c:\\Monitor_conf.xml"));
 	}
 	public static String getConf(String name){
 		 String a = conf.get(name);

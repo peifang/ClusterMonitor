@@ -12,6 +12,7 @@ import com.intel.fangpei.util.ConfManager;
 import com.intel.fangpei.util.HbaseUtil;
 
 public class Admin extends Client {
+	public static boolean debug = false;
 	/*
 	 * buffer to buffer the packet of command packet components: [Client Type]
 	 * byte [version] int [arg size] int [command] byte [args...] byte[]
@@ -32,11 +33,13 @@ public class Admin extends Client {
 			new Thread(connect).start();
 			while (true) {
 				byte[] b = new byte[1024];
+				System.out.print("--->]:");
 				System.in.read(b);
 				DoCommand(new String(b).trim());
 				b = new byte[1024];
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -45,6 +48,9 @@ public class Admin extends Client {
 		String[] s = null;
 		packet one = null;
 		byte COMMAND = CommandPhraser.GetUserInputCommand(command);
+		if(COMMAND == BasicMessage.OP_HELP){
+			printHelp();
+		}
 		if (COMMAND == BasicMessage.OP_HTABLE_CREATE) {
 			s = HbaseUtil.GetUserInputData_CreateTable();
 			one = new packet(BasicMessage.ADMIN, COMMAND,
@@ -79,7 +85,7 @@ public class Admin extends Client {
 					Bytes.toBytes(command.substring(command.indexOf(" "),
 							command.length())));
 			}catch(IndexOutOfBoundsException e){
-				System.out.println("exec [command]|[classname]");
+				System.out.println("exec [classname]");
 				return "";
 			}
 		}
@@ -91,6 +97,11 @@ public class Admin extends Client {
 		}
 		if (COMMAND == BasicMessage.OP_QUIT) {
 		one = new packet(BasicMessage.ADMIN, COMMAND);
+		}
+		if (COMMAND == BasicMessage.OP_SH) {
+			one = new packet(BasicMessage.ADMIN, COMMAND,
+					Bytes.toBytes(command.substring(command.indexOf(" "),
+							command.length())));
 		}
 		if(one == null)
 			return "";
@@ -107,7 +118,21 @@ public class Admin extends Client {
 		}
 		return sb.toString();
 	}
-
+	public static void printHelp(){
+		System.out.println("the command line Admin Usage:");
+		System.out.println("exec          execute a class which extend ExtendHandler");
+		System.out.println("              idh");
+		System.out.println("                    start|stop  hdfs|hbase|zookeeper|mapreduce|all");
+		System.out.println("                    status");
+		System.out.println("file          Distributed generate data and load it on the disk ");
+		System.out.println("progress      [not complete command,soon...]");
+		System.out.println("put           Distributed generate data and load it on HBase");
+		
+		System.out.println("create htable create htable with some options");
+		System.out.println("close         close the cluster's nodes demon");
+		System.out.println("quit          close the admin process");
+		System.out.println("sysinfo       get the cluster's system info");
+	}
 	public static void main(String[] args) {
 		ConfManager.addResource(null);
 		String ip = ConfManager.getConf("selectsocket.server.ip");

@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.logfactory.MonitorLog;
+import com.intel.fangpei.terminal.Admin;
 import com.intel.fangpei.util.TimeCounter;
 
 public class NIOHandler implements IConnection, INIOHandler, Runnable {
@@ -49,11 +50,12 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 	}
 
 	@Override
-	public void processRead() throws IOException {
+	public synchronized void processRead() throws IOException {
 		if(receive() == 0){
 			return;
 		}
-
+		if(Admin.debug)
+		System.out.println("read a packet!"+new String(args));
 		packet p = null;
 		/*
 		 * read a packet once; buffer.putInt(version); buffer.putInt(argsize);
@@ -67,7 +69,7 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 	}
 
 	@Override
-	public void processWrite() throws IOException {
+	public synchronized void processWrite() throws IOException {
 		if (sendqueue.isEmpty())
 			return;
 		packet p = sendqueue.pop();
@@ -82,11 +84,11 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 	}
 
 	@Override
-	public void addSendPacket(packet out) {
+	public synchronized void addSendPacket(packet out) {
 		sendqueue.add(out);
 	}
 
-	public packet getReceivePacket() {
+	public synchronized packet getReceivePacket() {
 		if (receivequeue.isEmpty())
 			return null;
 		return receivequeue.pop();
@@ -148,12 +150,12 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 		 * bug here;
 		 * when i close the server first, the admin will in error;
 		 */
-		System.out.print(buffer);
+		//System.out.print(buffer);
 		version = buffer.getInt();
 		argsize = buffer.getInt();
 		clientType = buffer.get();
 		command = buffer.get();
-		System.out.println(argsize+"..."+version);
+		//System.out.println(argsize+"..."+version);
 		if (version != BasicMessage.VERSION) {
 			ml.warn("the remote host's version is not compatible with us ,"+version
 					+ ", maybe this will make no sense!");
@@ -200,6 +202,8 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 
 	@Override
 	public void send(ByteBuffer buffer) {
+		if(Admin.debug)
+		System.out.println("send a packet:"+buffer.toString());
 		buffer.flip();
 		while (buffer.hasRemaining()) {
 			try {

@@ -1,7 +1,7 @@
 <configuration>
 <property>
 <name>log.path</name>
-<value>c:\</value>
+<value>/</value>
 </property>
 <property>
 <name>selectsocket.server.ip</name>
@@ -74,11 +74,11 @@
 </property>
 <property>
 <name>node.disk.gene.threads_one_pool</name>
-<value>2</value>
+<value>1</value>
 </property>
 <property>
 <name>node.disk.put.threads_one_pool</name>
-<value>4</value>
+<value>1</value>
 </property>
 <property>
 <name>node.disk.gene.bash</name>
@@ -87,7 +87,7 @@
 </property>
 <property>
 <name>node.disk.load.dir</name>
-<value>c:\1\,c:\2\,c:\3\,c:\4\,d:\</value>
+<value>/tmp/</value>
 </property>
 <property>
 <name>node.disk.load.file.maxsize</name>

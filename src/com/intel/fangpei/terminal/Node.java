@@ -2,6 +2,8 @@ package com.intel.fangpei.terminal;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.lang.ArrayUtils;
 
@@ -134,6 +136,9 @@ public class Node extends Client {
 		case (byte)11:
 		try {
 			si.Refresh();
+			Map m = si.GetSysInfoMap();
+			//System.out.println("NetWork_FQDN:"+m.get("NetWork_FQDN"));
+			//System.out.println("NetWork_IP:"+m.get("NetWork_IP"));
 		} catch (Exception e) {
 			ml.log(e.getMessage());
 			return false;
@@ -141,6 +146,8 @@ public class Node extends Client {
 	packet p = new packet(BasicMessage.NODE,BasicMessage.OP_SYSINFO,si.GetSysInfoBytes());
 	connect.addSendPacket(p);
 			return true;
+		case (byte)12:
+			System.out.println("excute a new single node command");
 		default:
 			return true;
 		}

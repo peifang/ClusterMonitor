@@ -12,6 +12,9 @@ public class CommandPhraser {
 
 	public static byte GetUserInputCommand(String command) throws IOException {
 		String[] s = command.split(" ");
+		if (s[0].equals("?")||s[0].equalsIgnoreCase("help")){
+			return BasicMessage.OP_HELP;
+		}
 		if (s[0].equals("put")) {
 			return BasicMessage.OP_lOAD_HBASE;
 		}
@@ -37,6 +40,9 @@ public class CommandPhraser {
 		}
 		if(s[0].equals("sysinfo")){
 			return BasicMessage.OP_SYSINFO;
+		}
+		if(s[0].equals("sh")){
+			return BasicMessage.OP_SH;
 		}
 		return (byte) -1;
 	}

@@ -19,6 +19,7 @@ public class BasicMessage {
 	public static final byte OP_lOAD_HIVE = (byte) 6;
 	public static final byte OP_HTABLE_CREATE = (byte) 4;
 	public static final int VERSION = 1;
-
-	public static final byte OK = (byte) 5;
+	public static final byte OP_HELP = (byte) 8;
+	public static final byte OK = (byte) 7;
+	public static final byte OP_SH = (byte) 12;
 }

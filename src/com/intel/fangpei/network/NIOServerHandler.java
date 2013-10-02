@@ -10,11 +10,15 @@ import java.util.LinkedList;
 import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.logfactory.MonitorLog;
+import com.intel.fangpei.network.PacketLine.segment;
+import com.intel.fangpei.util.ServerUtil;
 import com.intel.fangpei.util.TimeCounter;
 
 public class NIOServerHandler implements INIOHandler,Runnable{
+	PacketLine pipeline = null;
+	PacketLine waitWritePipeLine = null;
 //	private LinkedList<SelectionKey> sendqueue = new LinkedList<SelectionKey>();
-	private LinkedList<SelectionKey> receivequeue = new LinkedList<SelectionKey>();
+//	private LinkedList<SelectionKey> receivequeue = new LinkedList<SelectionKey>();
 	private SelectionKeyManager manager = null;
 	private SelectionKey inprocesskey = null;
 	private ByteBuffer buffer = null;
@@ -32,6 +36,8 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 		buffer = ByteBuffer.allocate(1024*1024*4);
 		buffer.clear();
 		tc = new TimeCounter(10000);
+		pipeline = new PacketLine();
+		waitWritePipeLine = new PacketLine();
 	}
 	@Override
 	public void processConnect() throws IOException {
@@ -40,7 +46,8 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 	}
 
 	@Override
-	public void processRead() throws IOException {
+	public synchronized void processRead() throws IOException {
+		System.out.println("read a packet");
 		//while((inprocesskey = manager.popNeedReadKey()) != null){
 			SocketChannel channel = (SocketChannel) inprocesskey.channel();
 			try{
@@ -58,12 +65,15 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 				manager.addCancelInterest(inprocesskey);
 				return;
 			}
+			System.out.println("received a packet from"+channel.socket().getInetAddress().getHostName());
 			if(argsize > 0)
 				p = new packet(clientType, command, args);
 			else
 				p = new packet(clientType, command);
-				inprocesskey.attach(p);
-				manager.addNeedProcessKey(inprocesskey);
+				//ServerUtil.attach(inprocesskey, p);
+				pipeline.addNode(inprocesskey, p);
+				System.out.println("add a node to pipeline");
+				//manager.addNeedProcessKey(inprocesskey);
 				manager.addReadInterest(inprocesskey);
 				argsize = 0; 
 		}
@@ -71,14 +81,25 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 	//}
 
 	@Override
-	public void processWrite() throws IOException {
+	public synchronized void processWrite() throws IOException {
 	//	while((inprocesskey = manager.popNeedWriteKey()) != null){
-			SocketChannel channel = (SocketChannel) inprocesskey.channel();
-			p = (packet) inprocesskey.attachment();
-			if(channel.write((ByteBuffer)(p.getBuffer().flip())) < p.size()){
+			//System.out.println("write a packet");
+			while(waitWritePipeLine.hasNext()){
+			segment se = waitWritePipeLine.popNode();
+			if(se !=null){
+			SelectionKey sk = se.key;
+			packet p = se.p;
+			SocketChannel channel = (SocketChannel) sk.channel();
+			ByteBuffer buffer = p.getBuffer();
+			if(buffer!=null){
+			if(channel.write((ByteBuffer) buffer.flip()) < buffer.capacity()){
 				ml.warn("server send little bytes than expected!");
 			}
+			System.out.println("write a segment to client");
+			}
 			manager.addReadInterest(inprocesskey);
+			}
+			}
 		}
 
 	//}
@@ -138,10 +159,16 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 	public void run() {
 		
 		while (true) {
+			try {
+				processWrite();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			inprocesskey = manager.popKey();
 			if (inprocesskey == null) {
 				try {
-					Thread.sleep(100);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -151,17 +178,17 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 			try {
 				if (inprocesskey.isReadable())
 				processRead();
-				else if(inprocesskey.isWritable())
-				processWrite();
-				Thread.sleep(50);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
+	}
+	public segment getNewSegement() {
+		return pipeline.popNode();
+	}
+	public void pushWriteSegement(SelectionKey key,packet p){
+		waitWritePipeLine.addNode(key, p);
 	}
 }

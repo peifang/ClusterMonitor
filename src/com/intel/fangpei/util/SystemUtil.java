@@ -1,8 +1,11 @@
 package com.intel.fangpei.util;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 
 public class SystemUtil {
+	private static String machineName = null;
 public static void initSysParameter(HashMap<String,String> map){
 	/*
 	 * this func will init the SysInfoHandler's resource .It contains 
@@ -38,5 +41,20 @@ public static void initSysParameter(HashMap<String,String> map){
 	map.put("NetWork_RxDropped", "");
 	map.put("NetWork_TxDropped", "");
 	map.put("NIC_Description", "");
+}
+
+public static String signature() {
+	if(machineName != null){
+		return machineName;
+	}else{
+		try {
+			machineName ="----->"+InetAddress.getLocalHost().getHostName()+"("+
+					InetAddress.getLocalHost().getHostAddress()+"):";
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return machineName;
+}
 }
 }

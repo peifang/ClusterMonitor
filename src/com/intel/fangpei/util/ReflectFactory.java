@@ -25,25 +25,19 @@ public static synchronized ReflectFactory getInstance(){
 		reflect = new ReflectFactory();
 		return reflect;
 }
-public Class getClass(String classname){
-	 try {
+public Class getClass(String classname) throws ClassNotFoundException{
 		return ccl.loadClass(classname);
-	} catch (ClassNotFoundException e) {
-		// TODO Auto-generated catch block
-		ml.error(e.getMessage());
-		return null;
-	}	
+
 }
-public Object getMyInstance(String classname) throws IllegalAccessException, InstantiationException{
-	System.out.println(classname);
+public Object getMyInstance(String classname) throws Exception{
 	Class c = getClass(classname);
 	if(c!=null){
-		System.out.println("===asdas===");
 		return c.newInstance();
 	}
+	System.out.println("[reflect factory]get instance failed!");
 	return null;
 }
-public Object getMyInstance(String classname,String[] args)throws Exception{
+public Object getMyInstance(String classname,String... args)throws Exception{
 	Class c = getClass(classname);
 	if(c!=null){
 		int paranum = args.length;
@@ -61,7 +55,7 @@ public boolean isSubClass(Class classname,Class c){
 	return c.isAssignableFrom(classname);
 }
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public boolean isSubClass(String classname,Class c){
+public boolean isSubClass(String classname,Class c) throws ClassNotFoundException{
 	Class c2 = getClass(classname);
 	if(c!=null){
 		return c.isAssignableFrom(c2);	

@@ -1,10 +1,15 @@
 package com.intel.fangpei.network;
 
 import java.io.IOException;
+import java.nio.channels.SelectionKey;
+import java.util.LinkedList;
+
 import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
+import com.intel.fangpei.network.PacketLine.segment;
 
 public class NIONodeHandler extends NIOHandler {
+	private static LinkedList<packet> processRequestSendqueue = new LinkedList<packet>();
 	public NIONodeHandler(String ip, int port) {
 		super(ip, port);
 	}
@@ -14,7 +19,9 @@ public class NIONodeHandler extends NIOHandler {
 		// TODO Auto-generated method stub
 
 	}
-
+public synchronized static void processRequest(packet p){
+	processRequestSendqueue.add(p);
+}
 	@Override
 	public void run() {
 		try {
@@ -30,6 +37,9 @@ public class NIONodeHandler extends NIOHandler {
 			System.exit(1);
 		}
 		while (true) {
+			while(!processRequestSendqueue.isEmpty()){
+				addSendPacket(processRequestSendqueue.pop());
+			}
 			try {
 				processRead();
 				processWrite();

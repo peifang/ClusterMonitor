@@ -40,18 +40,20 @@ public class SysInfo {
 		SystemUtil.initSysParameter(HardWareRes);
 	}
 	public void Refresh() throws Exception{
-		getCpuCount();
-		getCpuTotal();
-		testCpuPerc();
-		getPhysicalMemory();
-		getPlatformName();
-		testGetOSInfo();
-		testWho();
-		testFileSystemInfo();
+		//System.setProperty("java.library.path", "C:\\Users\\peifang\\Desktop\\sys");
+		//System.out.println(System.getProperty("java.library.path"));
+		//getCpuCount();
+		//getCpuTotal();
+		//testCpuPerc();
+		//getPhysicalMemory();
+		//getPlatformName();
+		//testGetOSInfo();
+		//testWho();
+		//testFileSystemInfo();
 		HardWareRes.put("NetWork_FQDN",getFQDN());
 		HardWareRes.put("NetWork_IP",getDefaultIpAddress());
-		HardWareRes.put("NetWork_MAC",getMAC());
-		testNetIfList();
+		//HardWareRes.put("NetWork_MAC",getMAC());
+		//testNetIfList();
 	//	getEthernetInfo();
 	}
  // 1.CPU资源信息

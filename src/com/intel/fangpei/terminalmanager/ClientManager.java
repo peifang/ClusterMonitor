@@ -1,51 +1,24 @@
 package com.intel.fangpei.terminalmanager;
 
-import java.nio.BufferUnderflowException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.SocketChannel;
-import java.util.HashMap;
 
 import org.apache.hadoop.hbase.util.Bytes;
 
 import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
-import com.intel.fangpei.SystemInfoCollector.SysInfo;
-import com.intel.fangpei.logfactory.MonitorLog;
+import com.intel.fangpei.network.NIOServerHandler;
 import com.intel.fangpei.network.SelectionKeyManager;
-import com.intel.fangpei.util.ServerUtil;
 
-public class ClientManager {
-	MonitorLog ml = null;
-	SelectionKey key = null;
-	SelectionKeyManager keymanager = null;
-	ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024 * 4);
-	int version = 0;
-	int argsize = 0;
-	byte clientType = 0;
-	byte command = 0;
-	byte[] args = null;
+public class ClientManager extends SlaveManager{
+	public ClientManager(SelectionKeyManager keymanager,NIOServerHandler nioserverhandler) {
+		super(keymanager,nioserverhandler);
+	}
 
-	public ClientManager(SelectionKey key, SelectionKeyManager keymanager) {
-		this.keymanager = keymanager;
+	public boolean Handle(SelectionKey key,packet p){
+		System.out.println("ClientManager:handle this request");
 		this.key = key;
-		buffer.clear();
-	}
-
-	public boolean sendCommand(packet p) {
-		ServerUtil.SendToClient((SocketChannel) key.channel(), p);
-		/*
-		 * whether the key is for a node? maybe it is the admin's quit command.
-		 */
-		if (!keymanager.findnode(key)) {
-			System.out.println("return false");
-			return false;
-		}
-		return true;
-	}
-
-	public boolean Handle() throws BufferUnderflowException {
-		buffer = ((packet)key.attachment()).getBuffer();
+		buffer = p.getBuffer();
+		System.out.println("handle:"+buffer.toString());
 			unpacket();
 			if (clientType == BasicMessage.ADMIN) {
 				if (command == BasicMessage.OP_QUIT) {
@@ -54,35 +27,33 @@ public class ClientManager {
 					return false;
 				}
 				if (command == BasicMessage.OP_LOGIN) {
-					packet p = new packet(BasicMessage.SERVER,BasicMessage.OP_MESSAGE,Bytes.toBytes("[message]admin"));
-					key.attach(p);
-					if (keymanager.addWriteInterest(key)) {
-						keymanager.setAdmin(key);
-						return true;
-					} else {
-						return false;
-					}
+					packet p2 = new packet(BasicMessage.SERVER,BasicMessage.OP_MESSAGE,Bytes.toBytes("[message]admin"));
+					nioserverhandler.pushWriteSegement(key, p2);
+					keymanager.setAdmin(key);
+					ml.log("New admin login!");
 				}
 			} else if (clientType == BasicMessage.NODE) {
+				SelectionKey admin = keymanager.getAdmin();
 				if (command == BasicMessage.OP_QUIT) {
 					keymanager.deletenode(key);
 					return false;
 				}
 				if (command == BasicMessage.OP_LOGIN) {
-					packet p = new packet(BasicMessage.SERVER,BasicMessage.OP_MESSAGE,Bytes.toBytes(" You have registered as a new Node"));
-					key.attach(p);
-					if (keymanager.addWriteInterest(key)) {
-						keymanager.addnode(key);
-						return true;
-					} else {
-						return false;
-					}
+					packet p2 = new packet(BasicMessage.SERVER,BasicMessage.OP_MESSAGE,Bytes.toBytes(" You have registered as a new Node"));
+					nioserverhandler.pushWriteSegement(key, p2);
+					keymanager.addnode(key);
 				}
 				if(command ==BasicMessage.OP_SYSINFO){
-					HashMap<String,String> hm = SysInfo.deserialize(args);
-					System.out.println(hm.get("CPU_Vendor"));
-					System.out.println(hm.get("Disk_info"));
-					System.out.print(hm.get("RegUser"));
+					nioserverhandler.pushWriteSegement(admin, new packet(buffer));
+					//HashMap<String,String> hm = SysInfo.deserialize(args);
+					//System.out.println(hm.get("CPU_Vendor"));
+					//System.out.println(hm.get("Disk_info"));
+					//System.out.print(hm.get("RegUser"));
+					return true;
+				}
+				if(command ==BasicMessage.OP_MESSAGE){
+					System.out.println("add write interest for Admin");
+					nioserverhandler.pushWriteSegement(admin,  new packet(buffer));
 					return true;
 				}
 			}
@@ -95,18 +66,6 @@ public class ClientManager {
 	private boolean operate() {
 		System.out.println("normal process");
 		return true;
-	}
-
-	private void unpacket() {
-		buffer.flip();
-		version = buffer.getInt();
-		argsize = buffer.getInt();
-		clientType = buffer.get();
-		command = buffer.get();
-		if (argsize != 0) {
-			args = new byte[buffer.remaining()];
-			buffer.get(args);
-		}
 	}
 
 }

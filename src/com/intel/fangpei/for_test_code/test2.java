@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class test2 {
 
@@ -15,6 +18,13 @@ public class test2 {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		try {
+			for(InetAddress addr:InetAddress.getAllByName(InetAddress.getLocalHost().getHostName()))
+			    System.out.println(addr);
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	System.out.println("woca");
 	System.out.print("~~"+new File("d:\\").isDirectory());
 	HashMap<String, String> map = new HashMap<String, String>();

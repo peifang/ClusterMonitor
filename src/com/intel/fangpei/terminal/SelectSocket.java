@@ -1,6 +1,9 @@
 package com.intel.fangpei.terminal;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.nio.channels.ClosedChannelException;
@@ -9,6 +12,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.Map;
 
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.NIOServerHandler;
@@ -53,11 +57,32 @@ public class SelectSocket {
 		}
 
 		try {
+			ml.log("/*Start depend on Process...");
+			ml.log("/*Start to Start Server H2 DataBase:");
+			//DataBase db = new DataBase();
+//			ProcessBuilder pb = new ProcessBuilder("java","-jar","InfoManager.jar");
+//			pb.directory(new File("C:\\Users\\peifang\\Desktop\\sys"));
+//			Map<String,String> m = pb.environment();	
+//			String classpath = m.get("CLASS_PATH");
+//			m.put("CLASS_PATH", classpath+";C:\\Users\\peifang\\Desktop\\sys\\InfoManager.jar;C:\\Users\\peifang\\Desktop\\sys\\h2-1.3.173.jar;C:\\Users\\peifang\\Desktop\\LIB\\hadoop-core-1.0.3-Intel.jar");
+//			Iterator enviterator = m.keySet().iterator();
+//			while(enviterator.hasNext()){
+//				Object key = enviterator.next();
+//				System.out.println(key+":"+m.get(key));
+//			}
+//			Process p = pb.start();
+//			InputStreamReader reader = new InputStreamReader(p.getErrorStream());
+//			BufferedReader bufferreader = new BufferedReader(reader);
+//			String line = null;
+//			while((line = bufferreader.readLine())!= null){
+//				System.out.println(line);
+//			}
+			ml.log("/*DataBase Server H2 have been started");
 			selector = Selector.open();
 			ml.log("/*Start " + processThreadNum + " Key handle Threads...");
 			for (int i = 0; i < processThreadNum; i++)
 				new Thread(new NIOProcess(selector, keymanager)).start();
-			new Thread(new NIOServerHandler(ml,keymanager)).start();
+			//new Thread(new NIOServerHandler(ml,keymanager)).start();
 			ml.log("/*Key handle Threads had started!");
 			ml.log("/*Server Listening at port: " + PORT_NUMBER);
 			ml.log("/*Start Server...");
@@ -73,7 +98,11 @@ public class SelectSocket {
 				while (it.hasNext()) {
 					SocketChannel channel = null;
 					SelectionKey key = it.next();
-					if (key.isAcceptable()) {
+					if(!key.isValid()){
+						it.remove();
+						continue;
+					}
+					if (key.isValid()&&key.isAcceptable()) {
 						ServerSocketChannel server = (ServerSocketChannel) key
 								.channel();
 						try {
@@ -110,15 +139,15 @@ public class SelectSocket {
 				break;
 			}
 		}
-		while (true) {
-			SelectionKey key = keymanager.popNeedWriteKey();
-			if (key != null && key.isValid()) {
-				key.interestOps(key.interestOps() & (~key.readyOps()));
-				key.interestOps(SelectionKey.OP_WRITE);
-			} else {
-				break;
-			}
-		}
+//		while (true) {
+//			SelectionKey key = keymanager.popNeedWriteKey();
+//			if (key != null && key.isValid()) {
+//				key.interestOps(key.interestOps() & (~key.readyOps()));
+//				key.interestOps(SelectionKey.OP_WRITE);
+//			} else {
+//				break;
+//			}
+//		}
 		while (true) {
 			SelectionKey key = keymanager.popNeedCancelKey();
 			if (key != null) {
@@ -154,5 +183,13 @@ public class SelectSocket {
 
 		}
 
+	}
+	public void close(){
+		try {
+			selector.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+		}
 	}
 }

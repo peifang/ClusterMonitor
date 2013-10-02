@@ -1,7 +1,5 @@
 package com.intel.fangpei.task;
 
-import java.lang.reflect.Constructor;
-
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.task.handler.ExtendHandleable;
 import com.intel.fangpei.task.handler.ExtendHandler;
@@ -24,20 +22,25 @@ public ExtendTask(MonitorLog ml,String classname,String[] args){
 @Override
 public void run() {
 	ExtendHandleable eh = null;
+	ReflectFactory rf = ReflectFactory.getInstance();
 	try{
-		ReflectFactory rf = ReflectFactory.getInstance();
 		if(args == null){
 		eh = (ExtendHandler) rf.getMyInstance(classname);
 		}else{
 		eh = (ExtendHandler) rf.getMyInstance(classname, args);
 		}
-		Thread t = new Thread(eh);
-		t.start();
 	}catch(Exception e){
-		ml.log("Exception: fail to load class "+e.getMessage()+" please " +
-				"check the Path ");
-		return;
+		//ml.log("Exception: fail to load class "+e.getMessage()+" please " +
+		//		"check the Path ");
+		try {
+			eh = (ExtendHandler) rf.getMyInstance("com.intel.developer.extend.Command",classname.replace("com.intel.developer.extend.", ""));
+		} catch (Exception e1) {
+			ml.error("no command named:"+classname.replace("com.intel.developer.extend.", ""));
+		}
 	}
+	if(eh == null)System.out.println("[error]cannot get instance");
+	Thread t = new Thread(eh);
+	t.start();
 	while(true){
 		ml.log("your task have completed: "+eh.taskCompletePercent());
 		ml.log("[extend log] "+eh.reportStatus());

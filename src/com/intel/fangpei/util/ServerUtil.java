@@ -2,6 +2,7 @@ package com.intel.fangpei.util;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 import com.intel.fangpei.BasicMessage.BasicMessage;
@@ -108,5 +109,23 @@ public class ServerUtil {
 	public static int SendToClient(SocketChannel sc, byte command) {
 		packet one = new packet(BasicMessage.SERVER, command);
 		return SendToClientWithTimeout(sc, one.getBuffer());
+	}
+	public static void attach(SelectionKey  key , packet attach){
+		if(key.attachment() == null){
+			key.attach(attach.getBuffer());
+		}else{
+			/*
+			 * maybe the attachment is mutil-packets;
+			 * a bug is here!the attachments maybe lose if 
+			 * another atatchement is coming but this one have
+			 * noe been processed.
+			 */
+			ByteBuffer front = (ByteBuffer) key.attachment();
+			ByteBuffer now = attach.getBuffer();
+			ByteBuffer buffer = ByteBuffer.allocate(front.capacity()+now.capacity());
+			buffer.put((ByteBuffer) front.flip());
+			buffer.put((ByteBuffer) now.flip());
+			key.attach(buffer);
+		}
 	}
 }
