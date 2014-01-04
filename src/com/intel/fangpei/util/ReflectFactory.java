@@ -17,6 +17,9 @@ private ReflectFactory(){
 		MonitorLog.loglog(e.getMessage());
 	} 
 }
+public ClassLoader getContextClassLoader(){
+	return ccl;
+}
 public static synchronized ReflectFactory getInstance(){
 	
 	if(reflect != null){

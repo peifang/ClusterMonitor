@@ -47,7 +47,7 @@ public class NIOProcess implements Runnable {
 			packet p = se.p;
 			if (key.equals(keymanager.getAdmin())) {
 				System.out.println("admin key");
-				am = new AdminManager(keymanager.getAdmin(), keymanager,nioserverhandler);
+				am = new AdminManager(ml,keymanager.getAdmin(), keymanager,nioserverhandler);
 					if (am.Handle(key,p)) {
 						ml.log("have read and handled the admin's request.");
 					}

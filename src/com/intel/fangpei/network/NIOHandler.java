@@ -48,7 +48,24 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 		channel = SocketChannel.open(address);
 		channel.configureBlocking(false);
 	}
-
+	/***
+	 * the function will sync block until 
+	 * there have any data to be received
+	 * @return true if you can read packet now.
+	 */
+	public boolean waitReadNext(){
+		synchronized(receivequeue){
+		if(isEmpty()){
+			try {
+				receivequeue.wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return true;
+		}
+	}
 	@Override
 	public synchronized void processRead() throws IOException {
 		if(receive() == 0){
@@ -64,7 +81,10 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 			p = new packet(clientType, command, args);
 		 else
 			p = new packet(clientType, command);
+		 synchronized(receivequeue){
 			receivequeue.push(p);
+			receivequeue.notifyAll();
+		 }
 			argsize = 0; 
 	}
 

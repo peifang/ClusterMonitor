@@ -3,8 +3,13 @@ package com.intel.fangpei.util;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
 
 import com.intel.fangpei.BasicMessage.packet;
+import com.intel.fangpei.network.NIONodeHandler;
 
 public class ClientUtil {
 	public static final int Admin = 0;
@@ -13,7 +18,21 @@ public class ClientUtil {
 	public ClientUtil() {
 		// TODO Auto-generated constructor stub
 	}
-
+	public static void print(Map m){
+		Iterator i = m.keySet().iterator();
+		while(i.hasNext()){
+			Object o = i.next();
+			System.out.println(o+":"+m.get(o));
+		}
+	}
+	public static NIONodeHandler startNodeThread(String ip,int port){
+		NIONodeHandler nodeHandler = new NIONodeHandler(ip,port);
+		Thread t = new Thread(nodeHandler);
+		t.setDaemon(true);
+		t.start();
+		return nodeHandler;
+		
+	}
 	/*
 	 * This function is for Client to send data to Server with the defined
 	 * Socket Channel.If the send fails in the timeout time ,it will return

@@ -39,7 +39,7 @@ public class ClientManager extends SlaveManager{
 					return false;
 				}
 				if (command == BasicMessage.OP_LOGIN) {
-					packet p2 = new packet(BasicMessage.SERVER,BasicMessage.OP_MESSAGE,Bytes.toBytes(" You have registered as a new Node"));
+					packet p2 = new packet(BasicMessage.SERVER,BasicMessage.OK,Bytes.toBytes(" You have registered as a new Node"));
 					nioserverhandler.pushWriteSegement(key, p2);
 					keymanager.addnode(key);
 				}

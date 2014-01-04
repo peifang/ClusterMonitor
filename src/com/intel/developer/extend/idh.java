@@ -1,11 +1,12 @@
 package com.intel.developer.extend;
-
-import com.intel.fangpei.IDHUtil.DirCheck;
+import com.intel.fangpei.IDHUtil.PreCheck;
 import com.intel.fangpei.IDHUtil.StartStop;
 import com.intel.fangpei.logfactory.MonitorLog;
-import com.intel.fangpei.task.handler.ExtendHandler;
-
-public class idh extends ExtendHandler{
+import com.intel.fangpei.task.handler.Extender;
+/**
+ *you can use this to support IDH operations;
+ */
+public class idh extends Extender{
 	MonitorLog ml = null;
 	String version = null;
 	String command1 = null;
@@ -40,6 +41,8 @@ public class idh extends ExtendHandler{
 		}
 	}else if(command1.equalsIgnoreCase("status")){
 		StartStop.check(11);
+	}else if(command1.equalsIgnoreCase("netspeed")){
+		PreCheck.check();
 	}
 	}
 

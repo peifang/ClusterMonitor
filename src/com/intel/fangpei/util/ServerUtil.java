@@ -3,13 +3,25 @@ package com.intel.fangpei.util;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+
+import org.apache.commons.logging.Log;
 
 import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
+import com.intel.fangpei.logfactory.MonitorLog;
+import com.intel.fangpei.network.NIOProcess;
+import com.intel.fangpei.network.NIOServerHandler;
+import com.intel.fangpei.terminal.SelectSocket;
 
 public class ServerUtil {
-
+public static NIOServerHandler startServerHandler(String port){
+	SelectSocket ss = new SelectSocket();
+	return ss.startAsCommonServer(port);
+}
 	public static int SendToClient(SocketChannel channel, ByteBuffer buffer) {
 		buffer.flip();
 		int len = 0;
@@ -62,38 +74,19 @@ public class ServerUtil {
 
 	public static int ReceiveWithTimeout(SocketChannel channel,
 			ByteBuffer buffer) {
-		String sb = "";
-		long timeout = 5000;
-		long now = System.currentTimeMillis();
-		while (!sb.trim().endsWith("#!")) {
-			if (System.currentTimeMillis() - now > timeout) {
-				// System.out.println(sb.toString());
-				// System.out.println("Address "+(channel.socket().getInetAddress().getHostAddress()+"read timeout,cancel!"));
-				return 0;
-			}
+		int reads = 0;
+		TimeCounter tc = new TimeCounter(5000);
+		while(!tc.isTimeout()){
 			try {
-				channel.read(buffer);
-
-				sb = new String(buffer.array());
+				reads += channel.read(buffer);
+				if(reads == buffer.capacity()){
+					return reads;
+				}
 			} catch (IOException e) {
-				System.out
-						.println("Address "
-								+ (channel.socket().getInetAddress()
-										.getHostAddress() + " connection fails!"));
-				return -1;
-			}
-
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		int as = buffer.get(buffer.position());
-		// buffer.position(buffer.position() - 2);
-		System.out.println(as + " " + buffer.mark());
-		return 1;
+		return reads;
 	}
 
 	public static int SendToClient(SocketChannel sc, packet p) {

@@ -2,7 +2,7 @@ package com.intel.fangpei.task;
 
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.task.handler.ExtendHandleable;
-import com.intel.fangpei.task.handler.ExtendHandler;
+import com.intel.fangpei.task.handler.Extender;
 import com.intel.fangpei.util.ReflectFactory;
 
 public class ExtendTask implements Task{
@@ -25,15 +25,15 @@ public void run() {
 	ReflectFactory rf = ReflectFactory.getInstance();
 	try{
 		if(args == null){
-		eh = (ExtendHandler) rf.getMyInstance(classname);
+		eh = (Extender) rf.getMyInstance(classname);
 		}else{
-		eh = (ExtendHandler) rf.getMyInstance(classname, args);
+		eh = (Extender) rf.getMyInstance(classname, args);
 		}
 	}catch(Exception e){
 		//ml.log("Exception: fail to load class "+e.getMessage()+" please " +
 		//		"check the Path ");
 		try {
-			eh = (ExtendHandler) rf.getMyInstance("com.intel.developer.extend.Command",classname.replace("com.intel.developer.extend.", ""));
+			eh = (Extender) rf.getMyInstance("com.intel.developer.extend.Command",classname.replace("com.intel.developer.extend.", ""));
 		} catch (Exception e1) {
 			ml.error("no command named:"+classname.replace("com.intel.developer.extend.", ""));
 		}

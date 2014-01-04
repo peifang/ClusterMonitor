@@ -13,7 +13,6 @@ public class NIONodeHandler extends NIOHandler {
 	public NIONodeHandler(String ip, int port) {
 		super(ip, port);
 	}
-
 	@Override
 	public void processError(Exception e) {
 		// TODO Auto-generated method stub
@@ -27,8 +26,6 @@ public synchronized static void processRequest(packet p){
 		try {
 			ml.log("start to connect server...");
 			processConnect();
-			packet one = new packet(BasicMessage.NODE, BasicMessage.OP_LOGIN);
-			addSendPacket(one);
 			ml.log("connected!");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
@@ -38,12 +35,13 @@ public synchronized static void processRequest(packet p){
 		}
 		while (true) {
 			while(!processRequestSendqueue.isEmpty()){
+				System.out.println("add send packet");
 				addSendPacket(processRequestSendqueue.pop());
 			}
 			try {
 				processRead();
 				processWrite();
-				if (!isEmpty()) {
+				if (isEmpty()) {
 					Thread.sleep(100);
 					continue;
 				}

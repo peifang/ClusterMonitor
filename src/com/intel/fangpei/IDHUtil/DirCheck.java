@@ -11,7 +11,7 @@ public class DirCheck {
 public static void check(MonitorLog log){
 	MonitorLog ml = log;
 	int procid = ProcessFactory.buildNewProcess("sh","BasicCheck");
-	ProcessFactory.getProc(procid).setWorkDir("/usr/bin");
+	ProcessManager.get(procid).setWorkDir("/usr/bin");
 	File logfile = new File("/var/log/checklog");
 	if(!logfile.exists())
 		try {

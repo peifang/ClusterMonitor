@@ -71,7 +71,19 @@ public static void loglog(String message){
 		}
 
 	}
+	public void logWithThreadName(String message) {
+		synchronized(fw){
+		try {
+			fw.write(headString() + "[message][" +Thread.currentThread().getName() +"]"+message + "\n");
+			fw.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		fw.notify();
+		}
 
+	}
 	public void warn(String message) {
 
 		try {

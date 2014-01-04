@@ -3,9 +3,9 @@ package com.intel.developer.extend;
 import com.intel.fangpei.IDHUtil.DirCheck;
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.process.ProcessFactory;
-import com.intel.fangpei.task.handler.ExtendHandler;
+import com.intel.fangpei.task.handler.Extender;
 
-public class BasicCheck extends ExtendHandler{
+public class BasicCheck extends Extender{
 	MonitorLog ml = null;
 	String version = null;
 	public BasicCheck(){

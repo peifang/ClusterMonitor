@@ -5,11 +5,11 @@ import java.nio.ByteBuffer;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import com.intel.fangpei.BasicMessage.BasicMessage;
+import com.intel.fangpei.BasicMessage.ServiceMessage;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.network.NIOAdminHandler;
 import com.intel.fangpei.util.CommandPhraser;
 import com.intel.fangpei.util.ConfManager;
-import com.intel.fangpei.util.HbaseUtil;
 
 public class Admin extends Client {
 	public static boolean debug = false;
@@ -51,23 +51,6 @@ public class Admin extends Client {
 		if(COMMAND == BasicMessage.OP_HELP){
 			printHelp();
 		}
-		if (COMMAND == BasicMessage.OP_HTABLE_CREATE) {
-			s = HbaseUtil.GetUserInputData_CreateTable();
-			one = new packet(BasicMessage.ADMIN, COMMAND,
-					Bytes.toBytes(formString(s)));
-
-		}
-		if (COMMAND == BasicMessage.OP_lOAD_HBASE) {
-			if(command.split(" ").length !=3){
-			System.out
-					.println("wrong parameter numbers for put data into HBase" +
-							"\n\t[usage]put [schema path] [num]");
-			return "";
-			}
-			one = new packet(BasicMessage.ADMIN, COMMAND,
-					Bytes.toBytes(command.substring(command.indexOf(" "),
-							command.length())));
-		}
 		if (COMMAND == BasicMessage.OP_lOAD_DISK) {
 			if(command.split(" ").length !=3){
 			System.out
@@ -76,14 +59,14 @@ public class Admin extends Client {
 			return "";
 			}
 			one = new packet(BasicMessage.ADMIN, COMMAND,
-					Bytes.toBytes(command.substring(command.indexOf(" "),
-							command.length())));
+					command.substring(command.indexOf(" "),
+							command.length()).getBytes());
 		}
 		if (COMMAND == BasicMessage.OP_EXEC) {
 			try{
 			one = new packet(BasicMessage.ADMIN, COMMAND,
-					Bytes.toBytes(command.substring(command.indexOf(" "),
-							command.length())));
+					command.substring(command.indexOf(" "),
+							command.length()).getBytes());
 			}catch(IndexOutOfBoundsException e){
 				System.out.println("exec [classname]");
 				return "";
@@ -100,8 +83,18 @@ public class Admin extends Client {
 		}
 		if (COMMAND == BasicMessage.OP_SH) {
 			one = new packet(BasicMessage.ADMIN, COMMAND,
-					Bytes.toBytes(command.substring(command.indexOf(" "),
-							command.length())));
+					command.substring(command.indexOf(" "),
+							command.length()).getBytes());
+		}
+		if (COMMAND == ServiceMessage.THREAD||COMMAND == ServiceMessage.SERVICE) {
+			try{
+			one = new packet(BasicMessage.ADMIN, COMMAND,
+					command.substring(command.indexOf(" "),
+							command.length()).getBytes());
+			}catch(Exception e){
+				System.out.println("thread|service args");
+				return "";
+			}
 		}
 		if(one == null)
 			return "";
@@ -147,30 +140,4 @@ public class Admin extends Client {
 		}
 	}
 }
-
-/*
- * 
- */
-/*
- * socket1 = new Socket("127.0.0.1",1234); OutputStream outStream =
- * socket1.getOutputStream(); InputStream inputStream =
- * socket1.getInputStream(); o = new ObjectOutputStream(outStream); i = new
- * ObjectInputStream(inputStream);
- * 
- * // ÒµÎñÂß¼­ Date date = new Date(); SimpleDateFormat bartDateFormat = new
- * SimpleDateFormat("yyyy-MM-dd-HH:mm:ss.sss"); String starttime =
- * bartDateFormat.format(date); TimeCounter timerTotal = new
- * TimeCounter("ThreadTotalTime"); try { Class.forName(driveName);
- * 
- * } catch (ClassNotFoundException e) { System.out.println("classnofound");
- * System.exit(1); } Statement st; Random random = new Random(); String sql
- * ="select * from extern limit 1"; try { Connection con =
- * DriverManager.getConnection( "jdbc:hive://"+ip+":10000/default", "", ""); st
- * = con.createStatement(); timerTotal.beginAndEnter(); st.executeQuery(sql);
- * timerTotal.leaveAndEnd(); } catch (SQLException e) { // TODO Auto-generated
- * catch block e.printStackTrace(); } long t = timerTotal.getCounter();
- * averagetime+=t; enroll roll =new enroll(sql,""+averagetime);
- * o.writeObject(roll); o.flush(); finally{ try{ o.close(); socket1.close();
- * }catch (IOException e){ e.printStackTrace(); } }
- */
 

@@ -2,8 +2,6 @@ package com.intel.fangpei.BasicMessage;
 
 import java.nio.ByteBuffer;
 
-import org.apache.hadoop.hbase.util.Bytes;
-
 import com.intel.fangpei.logfactory.MonitorLog;
 
 public class packet {
@@ -95,7 +93,7 @@ public class packet {
 			this.command = command;
 			return;
 		}
-		byte[] arg = Bytes.toBytes(args);
+		byte[] arg = args.getBytes();
 		this.clientType = clientType;
 		this.version = BasicMessage.VERSION;
 		this.argsize = arg.length;

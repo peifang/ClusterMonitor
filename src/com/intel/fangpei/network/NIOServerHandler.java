@@ -11,6 +11,7 @@ import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.PacketLine.segment;
+import com.intel.fangpei.util.Line;
 import com.intel.fangpei.util.ServerUtil;
 import com.intel.fangpei.util.TimeCounter;
 
@@ -47,7 +48,7 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 
 	@Override
 	public synchronized void processRead() throws IOException {
-		System.out.println("read a packet");
+		//System.out.println("read a packet");
 		//while((inprocesskey = manager.popNeedReadKey()) != null){
 			SocketChannel channel = (SocketChannel) inprocesskey.channel();
 			try{
@@ -65,14 +66,14 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 				manager.addCancelInterest(inprocesskey);
 				return;
 			}
-			System.out.println("received a packet from"+channel.socket().getInetAddress().getHostName());
+			//System.out.println("received a packet from"+channel.socket().getInetAddress().getHostName());
 			if(argsize > 0)
 				p = new packet(clientType, command, args);
 			else
 				p = new packet(clientType, command);
 				//ServerUtil.attach(inprocesskey, p);
 				pipeline.addNode(inprocesskey, p);
-				System.out.println("add a node to pipeline");
+				//System.out.println("add a node to pipeline");
 				//manager.addNeedProcessKey(inprocesskey);
 				manager.addReadInterest(inprocesskey);
 				argsize = 0; 
@@ -95,7 +96,7 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 			if(channel.write((ByteBuffer) buffer.flip()) < buffer.capacity()){
 				ml.warn("server send little bytes than expected!");
 			}
-			System.out.println("write a segment to client");
+			//System.out.println("write a segment to client");
 			}
 			manager.addReadInterest(inprocesskey);
 			}
@@ -108,6 +109,9 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 	public void processError(Exception e) {
 		// TODO Auto-generated method stub
 
+	}
+	public void removeWriteKey(SelectionKey key){
+		waitWritePipeLine.removeNode(key);
 	}
 	public int receive(SocketChannel channel) throws IOException {
 		buffer.clear();
@@ -190,5 +194,8 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 	}
 	public void pushWriteSegement(SelectionKey key,packet p){
 		waitWritePipeLine.addNode(key, p);
+	}
+	public SelectionKeyManager getNodeList(){
+		return manager;
 	}
 }

@@ -1,8 +1,10 @@
 package com.intel.fangpei.util;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Properties;
 
 public class SystemUtil {
 	private static String machineName = null;
@@ -56,5 +58,38 @@ public static String signature() {
 		}
 		return machineName;
 }
+}
+public static String operationType(){
+	Properties prop = System.getProperties();
+	String os = prop.getProperty("os.name");
+	return os;
+	
+}
+public static String buildSysPath(){
+	String syslib  = ConfManager.getConf("node.system.lib.path");
+	System.out.println("SystemPath:"+syslib);
+	String lib ="";
+	if(syslib!=null){
+	File f = new File(syslib);
+	if(f.isDirectory()){
+		File[] libs = f.listFiles();
+		for(int i =0;i<libs.length-1;i++){
+			if(libs[i].isFile())
+			lib += libs[i].getAbsolutePath()+":";
+		}
+		if(libs[libs.length-1].isFile()){
+			lib+=libs[libs.length-1].getAbsolutePath();
+		}
+		else{
+			lib = lib.substring(0, lib.length()-1);
+		}
+	}
+	System.out.println("ClusterMonitor System path is:"+lib);
+	return lib;
+	}
+	return "";
+}
+public static void main(String[] args){
+	operationType();
 }
 }

@@ -14,15 +14,20 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.NIOServerHandler;
 import com.intel.fangpei.network.SelectionKeyManager;
 import com.intel.fangpei.terminalmanager.AdminManager;
 import com.intel.fangpei.util.ConfManager;
 import com.intel.fangpei.network.NIOProcess;
+import com.intel.fangpei.network.rpc.RpcServer;
 
 /**
- * @author kyle
+ * This is the main entrance for server to start up.
+ * <p>If you want to start your own server ,you can use {@link #startAsCommonServer(String)} 
+ * @author fangpei
  * 
  */
 public class SelectSocket {
@@ -32,8 +37,85 @@ public class SelectSocket {
 	public static int data = 0;
 	private static final int PORT_NUMBER = 1234;
 	public static MonitorLog ml = null;
-	public static int processThreadNum = 0;
+	private static int processThreadNum = 0;
+	/**
+	 * Start as common server ,the args contains port.
+	 */
+	public NIOServerHandler startAsCommonServer(String args){
+		ConfManager.addResource(null);
+		try {
+			ml = new MonitorLog();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		final String port = args;
+		try {
+			selector = Selector.open();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		NIOServerHandler serverHandler = new NIOServerHandler(ml,keymanager);
+		Thread t = new Thread(){
+			public void run(){
+		try {
+			startServer(Integer.parseInt(port), selector);
+			while (true) {
+				CheckInterest();
+				int n = selector.select(100);
+				if (n == 0) {
+					continue;
+				}
+				Iterator<SelectionKey> it = selector.selectedKeys().iterator();
+			while (it.hasNext()) {
+				SocketChannel channel = null;
+				SelectionKey key = it.next();
+				if(!key.isValid()){
+					it.remove();
+					continue;
+				}
+				if (key.isValid()&&key.isAcceptable()) {
+					ServerSocketChannel server = (ServerSocketChannel) key
+							.channel();
+					try {
+						channel = server.accept();
+						ml.log("accept a new connection from "
+								+ channel.socket().getInetAddress()
+										.getHostAddress());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					registerChannel(selector, channel, SelectionKey.OP_READ);
+					it.remove();
+					continue;
+				}
+				it.remove();
+				key.interestOps(key.interestOps() & (~key.readyOps()));
+				keymanager.pushKey(key);
+			}
 
+		}
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClosedChannelException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+			}
+		};
+		t.setDaemon(true);
+		t.start();
+		Thread t2 = new Thread(serverHandler);
+		t2.setDaemon(true);
+		t2.start();
+		return serverHandler;
+	}
 	public static void main(String[] args) {
 		ConfManager.addResource(null);
 		try {
@@ -47,7 +129,7 @@ public class SelectSocket {
 		selectsocket.go(args);
 	}
 
-	private void go(String[] args) {
+	public void go(String[] args) {
 		int port = ConfManager.getInt("selectsocket.server.port", PORT_NUMBER);
 		if (args.length > 0) {
 			try {
@@ -58,6 +140,16 @@ public class SelectSocket {
 
 		try {
 			ml.log("/*Start depend on Process...");
+			ml.log("/*Start RPC Server...");
+			Thread t = new Thread(){
+				public void run(){
+				int port = ConfManager.getInt("selectsocket.rpc.port", 1235);
+				RpcServer rpc= new RpcServer(port);	
+				rpc.StartRPCServer();
+				}
+			};
+			t.setDaemon(true);
+			t.start();
 			ml.log("/*Start to Start Server H2 DataBase:");
 			//DataBase db = new DataBase();
 //			ProcessBuilder pb = new ProcessBuilder("java","-jar","InfoManager.jar");
@@ -82,7 +174,6 @@ public class SelectSocket {
 			ml.log("/*Start " + processThreadNum + " Key handle Threads...");
 			for (int i = 0; i < processThreadNum; i++)
 				new Thread(new NIOProcess(selector, keymanager)).start();
-			//new Thread(new NIOServerHandler(ml,keymanager)).start();
 			ml.log("/*Key handle Threads had started!");
 			ml.log("/*Server Listening at port: " + PORT_NUMBER);
 			ml.log("/*Start Server...");
@@ -154,6 +245,7 @@ public class SelectSocket {
 				ml.log("delete one node from "
 						+ ((SocketChannel) key.channel()).socket()
 								.getInetAddress().getHostAddress());
+				keymanager.deletenode(key);
 				key.cancel();
 			} else {
 				break;

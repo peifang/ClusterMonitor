@@ -3,6 +3,7 @@ package com.intel.fangpei.util;
 import java.io.IOException;
 
 import com.intel.fangpei.BasicMessage.BasicMessage;
+import com.intel.fangpei.BasicMessage.ServiceMessage;
 
 public class CommandPhraser {
 
@@ -15,19 +16,11 @@ public class CommandPhraser {
 		if (s[0].equals("?")||s[0].equalsIgnoreCase("help")){
 			return BasicMessage.OP_HELP;
 		}
-		if (s[0].equals("put")) {
-			return BasicMessage.OP_lOAD_HBASE;
-		}
 		if (s[0].equals("file")) {
 			return BasicMessage.OP_lOAD_DISK;
 		}
 		if (s[0].equals("exec")) {
 			return BasicMessage.OP_EXEC;
-		}
-		if (s[0].equals("create")) {
-			if (s[1].equals("htable")) {
-				return BasicMessage.OP_HTABLE_CREATE;
-			}
 		}
 		if (s[0].equals("close")) {
 			return BasicMessage.OP_CLOSE;
@@ -43,6 +36,12 @@ public class CommandPhraser {
 		}
 		if(s[0].equals("sh")){
 			return BasicMessage.OP_SH;
+		}
+		if(s[0].equals("thread")){
+			return ServiceMessage.THREAD;
+		}
+		if(s[0].equals("service")){
+			return ServiceMessage.SERVICE;
 		}
 		return (byte) -1;
 	}

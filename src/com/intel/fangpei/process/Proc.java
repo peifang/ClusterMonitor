@@ -8,9 +8,10 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
+import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.util.SystemUtil;
 
-public class Proc implements Runnable{
+public class Proc{
 	ProcOutPutHandler pioerror = null;
 	ProcOutPutHandler pioout = null;
 	ProcInPutHandler  pioinput = null;
@@ -19,9 +20,24 @@ public class Proc implements Runnable{
 	Boolean kill = false;
 	String processname = null;
 	File redirect = null;
+	private static MonitorLog ml = null; 
 public Proc(String... command){
+	if(ml == null){
+		getLogInstance();
+	}
 	p = new ProcessBuilder(command);
 	processname = command[0];
+}
+private synchronized void getLogInstance() {
+	if(ml == null){
+		try {
+			ml = new MonitorLog("/Proc.log");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 }
 public void setWorkDir(String path){
 	if(path == null){
@@ -51,7 +67,7 @@ public Map<String,String> getAllEnv(){
 }
 private void StartProcess(){
 	if(process != null){
-		System.out.println("cann't start multi times");
+		ml.error("cann't start multi times");
 		return;
 	}
 	try {
@@ -64,11 +80,14 @@ private void StartProcess(){
 		pioout = new ProcOutPutHandler(process.getInputStream(), "OUT",new FileOutputStream(redirect));
 		}
 	} catch (IOException e) {
-		System.out.println("no command named:"+processname);
+		if(process == null){
+			ml.error("process is null because the proc cann't be started");
+		}
+		ml.error("no command named:"+processname);
 		kill = true;
 		return;
 	}
-	System.out.println("Start pio");
+	ml.logWithThreadName("Start pio");
 	//write the packet head to Server;
 	//pioout.writeToServer(SystemUtil.signature());
 	pioerror.start();
@@ -77,8 +96,7 @@ private void StartProcess(){
 public void setOutput(File f){
 	redirect = f;
 }
-@Override
-public void run() {
+public int startAndWait() {
 	StartProcess();
 while(true){
 	int exitVal = 0;
@@ -93,8 +111,8 @@ while(true){
 //	System.out.println("free:"+Runtime.getRuntime().freeMemory()/1024.0/1024.0+"M");
 //	System.out.println("Max:"+Runtime.getRuntime().maxMemory()/1024.0/1024.0+"M");
 //	System.out.println("----------------------");
-	if(kill&&process!=null){
-		System.out.println("the process will exit...");
+	if(kill){
+		ml.logWithThreadName("the process will be killed...");
 		process.destroy();
 		try {
 			exitVal = process.waitFor();
@@ -102,20 +120,24 @@ while(true){
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return -1;
 	}
 	if(process!=null){
 	try{
 		exitVal = process.exitValue();
-		System.out.println("the process exit with the val:"+exitVal); 
-		break;
+		ml.logWithThreadName("the process exit with the val:"+exitVal);
+		return exitVal;
 	}catch(IllegalThreadStateException e){
 		
 	}
-}
-		
+}	
 }
 }
 public void killprocess(){
 	kill =true;
+}
+public void setAllEnv(Map<String, String> env) {
+	p.environment().putAll(env);
+	
 }
 }

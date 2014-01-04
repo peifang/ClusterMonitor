@@ -3,7 +3,18 @@ package com.intel.fangpei.network;
 import java.nio.channels.SelectionKey;
 
 import com.intel.fangpei.BasicMessage.packet;
-
+/*
+ *   <-end                         <-head
+ *      |                              |
+ *add-> -------------------------------- -> pop out
+ * @author fangpei.fp
+ *
+ */
+/***
+ * this help class is a support for KeyHandle Class
+ * @author fangpei.fp
+ *
+ */
 public class PacketLine {
 private packetNode head = null;
 private packetNode end = null;
@@ -24,8 +35,8 @@ public class segment{
 		this.key = key;
 		this.p = p;
 	}
-	SelectionKey key = null;
-	packet p = null;
+	public SelectionKey key = null;
+	public packet p = null;
 }
 private void addNode(packetNode node){
 	synchronized(lock){
@@ -60,6 +71,21 @@ public boolean hasNext(){
 		return false;
 	else{
 		return true;
+	}
+}
+/*
+ * ÓÐ´ýÍêÉÆ;
+ */
+public void removeNode(SelectionKey key){
+	if(head.key == key){
+		head = head.next;
+		return;
+	}
+	packetNode p = head.next;
+	while(p != null){
+		if(p.key == key){
+			
+		}
 	}
 }
 public int remain(){
