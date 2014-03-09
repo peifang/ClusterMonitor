@@ -15,8 +15,8 @@ import com.intel.fangpei.network.rpc.RpcClient;
 import com.intel.fangpei.process.ChildStrategy;
 import com.intel.fangpei.process.ProcessFactory;
 import com.intel.fangpei.process.ProcessManager;
-import com.intel.fangpei.task.TaskRunner.ChildId;
-import com.intel.fangpei.task.TaskRunner.ChildRunner;
+import com.intel.fangpei.task.TaskRunner.SplitId;
+import com.intel.fangpei.task.TaskRunner.SplitRunner;
 import com.intel.fangpei.task.handler.Extender;
 import com.intel.fangpei.util.ClientUtil;
 import com.intel.fangpei.util.ConfManager;
@@ -25,10 +25,10 @@ import com.intel.fangpei.util.SystemUtil;
 public class TaskRunner implements Runnable{
 public static String TASK_WORK_DIR = null;
 private int taskid = -1;
-private ChildRunner child = null;
+private SplitRunner child = null;
 private TaskTracker boss = null;
-private Map<ChildId,Integer> ChildIdTojvmId = null;
-private Map<Integer,ChildId> jvmIdToChildId = null;
+private Map<SplitId,Integer> ChildIdTojvmId = null;
+private Map<Integer,SplitId> jvmIdToChildId = null;
 private Map<JvmRunner,String> jvmToPid = null;
 private Map<Integer,JvmTask> idToJvmTask = null;
 private Map<Integer,ChildStrategy> jvmIdToStrategy = null;
@@ -38,8 +38,8 @@ private int completeChilds = 0;
 private ChildStrategy defaultChildStrate = null;
 private TaskStrategy starte = null;
 public TaskRunner(){
-	ChildIdTojvmId = new HashMap<ChildId,Integer>();
-	jvmIdToChildId = new HashMap<Integer,ChildId>();
+	ChildIdTojvmId = new HashMap<SplitId,Integer>();
+	jvmIdToChildId = new HashMap<Integer,SplitId>();
 	jvmToPid       = new HashMap<JvmRunner,String>();
 	idToJvmTask    = new HashMap<Integer,JvmTask>();
 	jvmIdToStrategy =new HashMap<Integer,ChildStrategy>();
@@ -88,11 +88,11 @@ public synchronized JvmTask expandNewJvm(TaskEnv env){
 public synchronized JvmTask expandNewJvm(){	
 	return expandNewJvm(null);
 }
-public class ChildRunner{
+public class SplitRunner{
 	private TaskEnv env = null;
 	String taskname = null;
 	String[] args = null;
-	public ChildRunner(String taskname){
+	public SplitRunner(String taskname){
 		this.taskname = taskname;
 		
 	}
@@ -155,9 +155,9 @@ public class JvmRunner extends Thread{
 /*
  * child conf metrix;
  */
-public class ChildId{
+public class SplitId{
 		public int id = 0;
-		public ChildId(){
+		public SplitId(){
 			this.id = new Random().nextInt(1000);
 		}
 		public int maxMemoryToUse = 0;
@@ -165,7 +165,7 @@ public class ChildId{
 public class TaskEnv{
 		public String env = "";
 }
-public static void setupWorkDir(ChildId childid, File file) {
+public static void setupWorkDir(SplitId childid, File file) {
 	
 }
 @Override
@@ -185,15 +185,15 @@ public void run() {
 		Iterator<String> loadScanner = loads.keySet().iterator();
 		while(loadScanner.hasNext()){
 			String load = loadScanner.next();
-			ChildRunner tmpchild = new ChildRunner(load);
+			SplitRunner tmpchild = new SplitRunner(load);
 //			if(loads.get(load)!=null){
 //				System.out.println("(*)"+loads.get(load)[0]+":"+loads.get(load)[1]);
 //			}
 			tmpchild.setArgs(loads.get(load));
-			jvmtask.assignNewChild(new ChildId(),tmpchild);
+			jvmtask.assignNewSplit(new SplitId(),tmpchild);
 		}
 		//get last work of the JVM
-		jvmtask.assignNewChild(new ChildId(), new ChildRunner(child.getLastWork()));
+		jvmtask.assignNewSplit(new SplitId(), new SplitRunner(child.getLastWork()));
 		child.startStrategyRunner(boss, jvmtask);
 	}
 	boss.report("complete TaskRunner init!");
@@ -202,7 +202,7 @@ public void run() {
 		while(i.hasNext()){
 			JvmTask jt = idToJvmTask.get(i.next());
 			if(jt.canStartNextThread()){
-				ChildRunner cr = (ChildRunner) jt.getChild().v;
+				SplitRunner cr = (SplitRunner) jt.getSplit().v;
 				boss.send(jt.jvmId,cr);
 				boss.report("[TaskRunner]assign new task, thename is:"+cr.taskname);
 			}

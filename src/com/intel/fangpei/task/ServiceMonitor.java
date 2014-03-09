@@ -13,7 +13,7 @@ import com.ali.fangpei.service.wrapWork;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.process.ProcessFactory;
 import com.intel.fangpei.process.ProcessManager;
-import com.intel.fangpei.task.TaskRunner.ChildRunner;
+import com.intel.fangpei.task.TaskRunner.SplitRunner;
 import com.intel.fangpei.util.ServerUtil;
 import com.intel.fangpei.util.SystemUtil;
 /***

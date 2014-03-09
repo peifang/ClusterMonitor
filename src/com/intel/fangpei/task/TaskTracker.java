@@ -15,7 +15,7 @@ import java.util.Iterator;
 import com.ali.fangpei.service.wrapWork;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.logfactory.MonitorLog;
-import com.intel.fangpei.task.TaskRunner.ChildRunner;
+import com.intel.fangpei.task.TaskRunner.SplitRunner;
 import com.intel.fangpei.util.ServerUtil;
 import com.intel.fangpei.util.TimeCounter;
 
@@ -52,7 +52,7 @@ public void addNewTaskMonitor(TaskRunner tr){
 	tr.setBoss(this);
 	new Thread(tr).start();
 }
-public void send(int jvmId,ChildRunner cr){
+public void send(int jvmId,SplitRunner cr){
 	server.send(jvmId, cr);
 }
 public void send(int jvmId,wrapWork ww){
@@ -63,7 +63,7 @@ public boolean isRegisted(int jvmid){
 }
 	public class TaskNotifyServer extends Thread{
 		HashMap<Integer,SocketChannel> registedJvm = new HashMap<Integer,SocketChannel>();
-		public void send(int jvmId,ChildRunner cr){
+		public void send(int jvmId,SplitRunner cr){
 			ByteBuffer buffer = cr.toTransfer().getBuffer();
 			//System.out.println(buffer);
 			SocketChannel channel = registedJvm.get(jvmId);

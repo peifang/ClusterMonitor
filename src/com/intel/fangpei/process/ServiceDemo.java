@@ -8,13 +8,13 @@ import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.NIONodeHandler;
 import com.intel.fangpei.task.ExtendTask;
 import com.intel.fangpei.task.TaskRunner;
-import com.intel.fangpei.task.TaskRunner.ChildId;
+import com.intel.fangpei.task.TaskRunner.SplitId;
 import com.intel.fangpei.util.ConfManager;
 
 public class ServiceDemo {
 	static MonitorLog ml = null;
 	  static TaskRunner tr = null;
-	  static ChildId childid = null;
+	  static SplitId childid = null;
 	  public static void main(String[] args) throws Throwable {
 		  ProcessFactory.setStartID(10000);
 		  ml = new MonitorLog("/service.log");

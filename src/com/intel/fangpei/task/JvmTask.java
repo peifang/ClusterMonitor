@@ -1,7 +1,7 @@
 package com.intel.fangpei.task;
 
-import com.intel.fangpei.task.TaskRunner.ChildId;
-import com.intel.fangpei.task.TaskRunner.ChildRunner;
+import com.intel.fangpei.task.TaskRunner.SplitId;
+import com.intel.fangpei.task.TaskRunner.SplitRunner;
 import com.intel.fangpei.task.TaskRunner.TaskEnv;
 import com.intel.fangpei.util.Line;
 import com.intel.fangpei.util.Line.segment;
@@ -10,7 +10,7 @@ public class JvmTask {
 int jvmId = 0;
 TaskEnv env = null;
 private boolean startNextThread = false;
-Line<ChildId,ChildRunner> works = new Line<ChildId,ChildRunner>();
+Line<SplitId,SplitRunner> works = new Line<SplitId,SplitRunner>();
 TaskRunner boss = null;
 public JvmTask(int jvmId) {
 	this.jvmId = jvmId;
@@ -25,7 +25,7 @@ public void setEnv(TaskEnv env){
 public void SetTaskRunner(TaskRunner tr){
 	boss = tr;
 }
-/*
+/**
  * if use this function:
  * return true:
  * perform OK for start next work
@@ -37,18 +37,18 @@ public synchronized boolean nextWork(){
 	if(startNextThread){
 		return false;
 	}
-	boss.report("[jvmtask]prepare to start next child task in the JVM:"+jvmId);
+	boss.report("[jvmtask]prepare to start next split task in the JVM:"+jvmId);
 	startNextThread = true;
 	return true;
 }
-public segment getChild() {
+public segment getSplit() {
 	return works.popNode();
 }
-public void assignNewChild(ChildId id,ChildRunner cr){
+public void assignNewSplit(SplitId id,SplitRunner cr){
 	cr.setEnv(env);
 	works.addNode(id, cr);
 }
-public boolean noTaskAssign() {
+public boolean noSplitAssign() {
 	if(works!=null&&works.hasNext()){
 		return false;
 	}

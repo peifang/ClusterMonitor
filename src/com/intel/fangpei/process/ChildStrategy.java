@@ -43,8 +43,8 @@ public class ChildStrategy extends Thread{
 		}
 		public void run(){
 			System.out.println("[ChildStartegy]boss is running:"+boss.isRunning());
-			System.out.println("[ChildStartegy]has no work to assign?:"+taskManager.noTaskAssign());
-			while(boss.isRunning()&&!taskManager.noTaskAssign()){	
+			System.out.println("[ChildStartegy]has no work to assign?:"+taskManager.noSplitAssign());
+			while(boss.isRunning()&&!taskManager.noSplitAssign()){	
 				if(childStrate.canDoNextWork()){
 					if(taskManager.nextWork()){
 					System.out.println("[ChildStartegy]assign new task");
