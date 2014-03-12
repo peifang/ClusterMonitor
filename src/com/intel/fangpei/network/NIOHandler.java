@@ -72,7 +72,7 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 			return;
 		}
 		if(Admin.debug)
-		System.out.println("read a packet!"+new String(args));
+		ml.log("[processread]read a packet!"+new String(args));
 		packet p = null;
 		/*
 		 * read a packet once; buffer.putInt(version); buffer.putInt(argsize);

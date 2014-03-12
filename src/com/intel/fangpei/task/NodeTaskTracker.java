@@ -19,7 +19,7 @@ import com.intel.fangpei.task.TaskRunner.SplitRunner;
 import com.intel.fangpei.util.ServerUtil;
 import com.intel.fangpei.util.TimeCounter;
 
-public class TaskTracker {
+public class NodeTaskTracker {
 private TaskNotifyServer server = null;
 private int taskid = 10000;
 private boolean isRunning = false;
@@ -28,7 +28,7 @@ private boolean isRunning = false;
  */
 private MonitorLog ml = null;
 private ArrayList<TaskRunner> runners = new ArrayList<TaskRunner>();
-public TaskTracker(MonitorLog ml){
+public NodeTaskTracker(MonitorLog ml){
 	this.ml = ml;
 	server = new TaskNotifyServer();
 	new Thread(server).start();
@@ -76,9 +76,9 @@ public boolean isRegisted(int jvmid){
 			while (buffer.hasRemaining()) {
 				try {
 					System.out.println("[TaskTracker]buffer is:"+new String(buffer.array()));
-					channel.write(buffer);
+					int c = channel.write(buffer);
 					try {
-						Thread.sleep(2000);
+						Thread.sleep(500);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

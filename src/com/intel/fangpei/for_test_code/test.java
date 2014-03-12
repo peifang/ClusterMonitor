@@ -18,12 +18,14 @@ public class test {
 		DisLogObj o1 = ping.StartServer("56784");
 		DisLogObj o2 = ping.StartClient("127.0.0.1", 56784, null, 3);
 		o2.send(new packet(BasicMessage.NODE,BasicMessage.OP_MESSAGE,"hello world!"), 4);
+		o2.send(new packet(BasicMessage.NODE,BasicMessage.OP_MESSAGE,"hello world!"), 4);
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		System.out.println(new String(o1.receive().p.getArgs()));
 		System.out.println(new String(o1.receive().p.getArgs()));
 		NIOServerHandler server2 = ServerUtil.startServerHandler("457");
 		NIONodeHandler node2 = ClientUtil.startNodeThread("127.0.0.1", 457);

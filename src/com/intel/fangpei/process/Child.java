@@ -68,7 +68,7 @@ public class Child{
 	    t.setDaemon(true);
 	    t.start();
 	    //wait time for task prepare
-	    long millis = 1000;
+	    long millis = 10;
 	    packet inprocessTaskPacket = null;
 	      while (true) {
 	        if ((inprocessTaskPacket = node.getReceivePacket()) == null) {

@@ -27,7 +27,7 @@ public class TaskRunner implements Runnable{
 public static String TASK_WORK_DIR = null;
 private int taskid = -1;
 private SplitRunner child = null;
-private TaskTracker boss = null;
+private NodeTaskTracker boss = null;
 //private Map<SplitId,Integer> ChildIdTojvmId = null;
 //private Map<Integer,SplitId> jvmIdToChildId = null;
 private Map<JvmRunner,String> jvmToid = null;
@@ -50,7 +50,7 @@ public TaskRunner(){
 public void setTaskStrategy(TaskStrategy starte){
 	this.taskstrategy = starte;
 }
-public void setBoss(TaskTracker tracker){
+public void setBoss(NodeTaskTracker tracker){
 	this.boss = tracker;
 	this.taskid = tracker.nextTaskID();
 }

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.intel.fangpei.task.ChildJvm;
-import com.intel.fangpei.task.TaskTracker;
+import com.intel.fangpei.task.NodeTaskTracker;
 import com.intel.fangpei.util.ClientUtil;
 
 public class ChildStrategy extends Thread{
@@ -27,16 +27,16 @@ public class ChildStrategy extends Thread{
 	public  boolean canDoNextWork(){	
 		return true;
 	}
-	public void startStrategyRunner(TaskTracker boss, ChildJvm taskManager){
+	public void startStrategyRunner(NodeTaskTracker boss, ChildJvm taskManager){
 		runner = new StartegyRunner(this,boss,taskManager);
 		//runner.setDaemon(true);
 		runner.start();
 	}
 	public class StartegyRunner extends Thread{
-		private TaskTracker boss = null;
+		private NodeTaskTracker boss = null;
 		private ChildJvm taskManager = null;
 		private ChildStrategy childStrate = null;
-		public StartegyRunner(ChildStrategy childStrate,TaskTracker boss, ChildJvm taskManager){
+		public StartegyRunner(ChildStrategy childStrate,NodeTaskTracker boss, ChildJvm taskManager){
 			this.childStrate = childStrate;
 			this.boss = boss;
 			this.taskManager = taskManager;

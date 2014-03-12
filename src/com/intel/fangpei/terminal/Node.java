@@ -21,7 +21,7 @@ import com.intel.fangpei.process.ProcessFactory;
 import com.intel.fangpei.process.ProcessManager;
 import com.intel.fangpei.task.TaskRunner;
 import com.intel.fangpei.task.TaskStrategy;
-import com.intel.fangpei.task.TaskTracker;
+import com.intel.fangpei.task.NodeTaskTracker;
 import com.intel.fangpei.util.ClientUtil;
 import com.intel.fangpei.util.ConfManager;
 import com.intel.fangpei.util.ReflectFactory;
@@ -32,7 +32,7 @@ public class Node extends Client {
 	SysInfo si = null;
 	String serverip = "";
 	int port = 0;
-	TaskTracker tracker = null;
+	NodeTaskTracker tracker = null;
 	int serviceDemoJvmid = -1;
 	boolean serviceDemoIsRunning = false;
 	Node(String serverip, int port) {
@@ -44,7 +44,7 @@ public class Node extends Client {
 		this.serverip = serverip;
 		this.port = port;
 		this.connect = new NIONodeHandler(serverip, port);
-		tracker = new TaskTracker(ml);//need port to pass in***
+		tracker = new NodeTaskTracker(ml);//need port to pass in***
 		si = SysInfo.GetSysHandler();
 	}
 
