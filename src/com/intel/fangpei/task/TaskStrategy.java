@@ -7,13 +7,17 @@ import java.util.Map;
 import java.util.Set;
 
 import com.intel.fangpei.process.ChildStrategy;
+import com.intel.fangpei.task.TaskRunner.SplitId;
+import com.intel.fangpei.task.TaskRunner.SplitRunner;
 import com.intel.fangpei.util.ReflectFactory;
 
 public class TaskStrategy {
 private int jvmNum = 0;
-private ArrayList<ChildStrategy> Strategys = null;
+private boolean isRunning = false;
+private boolean hasRefresh = false;
+private HashMap<ChildStrategy,Boolean> Strategys = null;
 public TaskStrategy(){
-	Strategys = new ArrayList<ChildStrategy>();
+	Strategys = new HashMap<ChildStrategy,Boolean>();
 }
 public int getJvmNum() {
 	return jvmNum;
@@ -35,6 +39,9 @@ public void addStrategy(String strategy,String[] classname){
 		System.out.println("class"+strategy+"is not the instance of Strategy!");
 	}
 	addStrategy(mystrategy,classname);
+	if(isRunning){
+		hasRefresh = true;
+	}
 }
 public void addStrategy(ChildStrategy strategy,String[] classname){
 	Map<String,String[]> map = new HashMap<String,String[]>();
@@ -43,13 +50,36 @@ public void addStrategy(ChildStrategy strategy,String[] classname){
 	map.put(classname[i],null);
 	}
 	addStrategy(strategy,map);
+	if(isRunning){
+		hasRefresh = true;
+	}
 }
 public void addStrategy(ChildStrategy strategy,Map<String,String[]> loadToArgs){
-	Strategys.add(strategy);
+	Strategys.put(strategy,false);
 	strategy.addLoads(loadToArgs);
 	jvmNum ++;
+	if(isRunning){
+		hasRefresh = true;
+	}
 }
-public synchronized ArrayList<ChildStrategy> ChildStrategys(){
+public synchronized HashMap<ChildStrategy,Boolean> ChildStrategys(){
 return Strategys;
+}
+/**
+ * 是否有新的strategy加入。前提是该strategy已经处于运行态
+ * @return boolean 是否已经有新的未启动strategy
+ */
+public boolean hasNewStrategy() {
+	if(isRunning&&hasRefresh){
+		hasRefresh =false;
+		return true;
+	}
+	return false;
+}
+/**
+ * 标记当前taskstrategy已经处于运行态
+ */
+public void flagRunning(){
+	isRunning = true;
 }
 }

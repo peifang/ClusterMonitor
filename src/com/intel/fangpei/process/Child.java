@@ -75,7 +75,7 @@ public class Child{
 	          Thread.sleep(millis);
 	          continue;
 	        } else {
-	        	System.out.println(inprocessTaskPacket.getBuffer());
+	        	System.out.println("proccess "+jvmId+" recevied:"+new String(inprocessTaskPacket.getBuffer().array()));
 	        	byte[] taskArgsbytes = inprocessTaskPacket.getArgs();
 	        	if(taskArgsbytes == null){
 	        		System.out.println("fack!!!-----------error");

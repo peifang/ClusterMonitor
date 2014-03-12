@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.commons.lang.ArrayUtils;
 
@@ -161,9 +162,20 @@ public class Node extends Client {
 		TaskRunner tr = new TaskRunner();
 		TaskStrategy strate = null;
 		strate = new TaskStrategy();
-		strate.addStrategy(tr.getDefault(),new String[]{classname});
+		strate.addStrategy(tr.getDefaultStrategy(),new String[]{classname});
 		tr.setTaskStrategy(strate);
 		tracker.addNewTaskMonitor(tr);
+		/*
+		 * example add strategy
+		Random r = new Random();
+		while(true){
+		try {
+			Thread.sleep(50*r.nextInt(100));
+		} catch (InterruptedException e) {
+			break;
+		}
+		strate.addStrategy(tr.getDefaultStrategy(),new String[]{classname});
+		}*/
 		return true;
 	}
 	private boolean extendTask(String  classname,String[] args){
@@ -172,7 +184,7 @@ public class Node extends Client {
 		strate = new TaskStrategy();
 		Map<String,String[]> map = new HashMap<String,String[]>();
 		map.put(classname,args);
-		strate.addStrategy(tr.getDefault(),map);
+		strate.addStrategy(tr.getDefaultStrategy(),map);
 		tr.setTaskStrategy(strate);
 		tracker.addNewTaskMonitor(tr);
 		return true;

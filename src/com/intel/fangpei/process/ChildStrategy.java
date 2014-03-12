@@ -3,7 +3,7 @@ package com.intel.fangpei.process;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.intel.fangpei.task.JvmTask;
+import com.intel.fangpei.task.ChildJvm;
 import com.intel.fangpei.task.TaskTracker;
 import com.intel.fangpei.util.ClientUtil;
 
@@ -27,16 +27,16 @@ public class ChildStrategy extends Thread{
 	public  boolean canDoNextWork(){	
 		return true;
 	}
-	public void startStrategyRunner(TaskTracker boss, JvmTask taskManager){
+	public void startStrategyRunner(TaskTracker boss, ChildJvm taskManager){
 		runner = new StartegyRunner(this,boss,taskManager);
 		//runner.setDaemon(true);
 		runner.start();
 	}
 	public class StartegyRunner extends Thread{
 		private TaskTracker boss = null;
-		private JvmTask taskManager = null;
+		private ChildJvm taskManager = null;
 		private ChildStrategy childStrate = null;
-		public StartegyRunner(ChildStrategy childStrate,TaskTracker boss, JvmTask taskManager){
+		public StartegyRunner(ChildStrategy childStrate,TaskTracker boss, ChildJvm taskManager){
 			this.childStrate = childStrate;
 			this.boss = boss;
 			this.taskManager = taskManager;

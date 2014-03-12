@@ -63,21 +63,38 @@ public boolean isRegisted(int jvmid){
 }
 	public class TaskNotifyServer extends Thread{
 		HashMap<Integer,SocketChannel> registedJvm = new HashMap<Integer,SocketChannel>();
-		public void send(int jvmId,SplitRunner cr){
+		public synchronized void send(int jvmId,SplitRunner cr){
 			ByteBuffer buffer = cr.toTransfer().getBuffer();
 			//System.out.println(buffer);
 			SocketChannel channel = registedJvm.get(jvmId);
 			if(channel == null||(!channel.isConnected())){
 				ml.error("we cann't find the JVM which you want to send to"
 						+ ",maybe the JVM has been destroyed ");
+				return;
 			}
 			buffer.flip();
 			while (buffer.hasRemaining()) {
 				try {
+					System.out.println("[TaskTracker]buffer is:"+new String(buffer.array()));
 					channel.write(buffer);
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				} catch (IOException e) {
 					ml.error("send command to the JVM failed,"
 							+ "please check the detail!");
+					ml.error(e.getMessage());
+				}catch(NullPointerException e){
+					System.out.println("channel is none now," +
+							"it's jvmid is:"+jvmId
+							+",remove this registed key");
+					registedJvm.remove(jvmId);
+					ml.error("channel is none," +
+							"but still some data haven't sent:"
+							+new String(buffer.array()));
 					ml.error(e.getMessage());
 				}
 			}
@@ -85,7 +102,7 @@ public boolean isRegisted(int jvmid){
 		public boolean isRegistedJvm(int jvmid) {
 			return registedJvm.containsKey(jvmid);		
 		}
-		public void send(int jvmId,wrapWork ww){
+		public synchronized void send(int jvmId,wrapWork ww){
 			ByteBuffer buffer = ww.toTransfer().getBuffer();
 			//System.out.println(buffer);
 			SocketChannel channel = registedJvm.get(jvmId);
@@ -162,12 +179,19 @@ public boolean isRegisted(int jvmid){
 							if(ServerUtil.ReceiveWithTimeout(channel, buffer) <= 0){
 								ml.error("when accept the jvm connect,we cann't get" +
 										"the procid it sends,throw the jvm");
+								it.remove();
 								continue;
 							}
 							buffer.flip();
+							try{
 							int jvmid = Integer.parseInt(new String(packet.getOnePacket(buffer).getArgs()));
 							//System.out.println("this jvm id :"+jvmid);	
 							registedJvm.put(jvmid, channel);
+							}catch(NullPointerException e){
+								ml.error("when the JVM registe on NotifyServer,we got uncomplete Buffer!");
+								it.remove();
+								continue;
+							}
 						} catch (IOException e) {
 						}
 						it.remove();
