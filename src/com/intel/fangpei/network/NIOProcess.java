@@ -8,29 +8,35 @@ import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.PacketLine.segment;
 import com.intel.fangpei.terminalmanager.AdminManager;
 import com.intel.fangpei.terminalmanager.ClientManager;
+import com.intel.fangpei.util.SystemUtil;
 
 public class NIOProcess implements Runnable {
 	private MonitorLog ml = null;
 	SelectionKeyManager keymanager = null;
 	ClientManager cm = null;
 	AdminManager am = null;
-	Selector selector = null;
 	NIOServerHandler nioserverhandler = null;
-	public NIOProcess(Selector selector, SelectionKeyManager keymanager) {
+	public NIOProcess(SelectionKeyManager keymanager,NIOServerHandler nioserverhandler) {
 		this.keymanager = keymanager;
-		this.selector = selector;
+		this.nioserverhandler = nioserverhandler;
 		try {
 			ml = new MonitorLog();
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		nioserverhandler = new NIOServerHandler(ml,keymanager);
 	}
-
+	public NIOProcess(NIOServerHandler nioserverhandler) {
+		this.nioserverhandler = nioserverhandler;
+		try {
+			ml = new MonitorLog();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
 	@Override
 	public void run() {
-		new Thread(nioserverhandler).start();
 		while (true) {
 			segment se = nioserverhandler.getNewSegement();
 			if (se == null) {
@@ -42,17 +48,17 @@ public class NIOProcess implements Runnable {
 				}
 				continue;
 			}
-			System.out.println("NIOProcess:get out a new segment");
+			System.out.println("[NIOProcess]get out a new packet:"+SystemUtil.byteToString(se.p.getArgs()));
 			SelectionKey key = se.key;
 			packet p = se.p;
 			if (key.equals(keymanager.getAdmin())) {
-				System.out.println("admin key");
+				System.out.println("[NIOProcess]this a packet from admin");
 				am = new AdminManager(ml,keymanager.getAdmin(), keymanager,nioserverhandler);
 					if (am.Handle(key,p)) {
 						ml.log("have read and handled the admin's request.");
 					}
 			} else {
-				System.out.println("client key");
+				System.out.println("[NIOProcess]this a packet from client");
 				cm = new ClientManager(keymanager,nioserverhandler);
 					try {
 						if (cm.Handle(key,p)) {

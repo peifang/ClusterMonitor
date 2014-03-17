@@ -8,6 +8,7 @@ import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.network.NIOServerHandler;
 import com.intel.fangpei.network.SelectionKeyManager;
+import com.intel.fangpei.util.SystemUtil;
 
 public class ClientManager extends SlaveManager{
 	public ClientManager(SelectionKeyManager keymanager,NIOServerHandler nioserverhandler) {
@@ -15,10 +16,10 @@ public class ClientManager extends SlaveManager{
 	}
 
 	public boolean Handle(SelectionKey key,packet p){
-		System.out.println("ClientManager:handle this request");
+		System.out.println("[ClientManager]handle this request");
 		this.key = key;
 		buffer = p.getBuffer();
-		System.out.println("handle:"+buffer.toString());
+		System.out.println("[ClientManager]this client packet is:"+SystemUtil.byteToString(p.getArgs()));
 			unpacket();
 			if (clientType == BasicMessage.ADMIN) {
 				if (command == BasicMessage.OP_QUIT) {
@@ -52,7 +53,7 @@ public class ClientManager extends SlaveManager{
 					return true;
 				}
 				if(command ==BasicMessage.OP_MESSAGE){
-					System.out.println("add write interest for Admin");
+					System.out.println("[ClientManager]add NIO write interest for Admin");
 					nioserverhandler.pushWriteSegement(admin,  new packet(buffer));
 					return true;
 				}

@@ -1,23 +1,34 @@
 package com.intel.fangpei.network;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.PacketLine.segment;
+import com.intel.fangpei.util.ConfManager;
 import com.intel.fangpei.util.Line;
 import com.intel.fangpei.util.ServerUtil;
+import com.intel.fangpei.util.SystemUtil;
 import com.intel.fangpei.util.TimeCounter;
-
+/**
+ * Start as common server ,the args contains port.
+ */
 public class NIOServerHandler implements INIOHandler,Runnable{
 	PacketLine pipeline = null;
 	PacketLine waitWritePipeLine = null;
+	Selector selector = null;
 //	private LinkedList<SelectionKey> sendqueue = new LinkedList<SelectionKey>();
 //	private LinkedList<SelectionKey> receivequeue = new LinkedList<SelectionKey>();
 	private SelectionKeyManager manager = null;
@@ -31,9 +42,32 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 	private packet p = null;
 	private TimeCounter tc = null;
 	private MonitorLog ml = null;
-	public NIOServerHandler(MonitorLog ml,SelectionKeyManager manager){
+	private int port = 0;
+	ServerSocketChannel serverchannel = null;
+	public NIOServerHandler(int port,MonitorLog ml,SelectionKeyManager manager){
+		this.port = port;
+		ConfManager.addResource(null);
 		this.manager  = manager;
 		this.ml = ml;
+		buffer = ByteBuffer.allocate(1024*1024*4);
+		buffer.clear();
+		tc = new TimeCounter(10000);
+		pipeline = new PacketLine();
+		waitWritePipeLine = new PacketLine();
+	}
+	public NIOServerHandler(int port,MonitorLog ml){
+		this.port = port;
+		ConfManager.addResource(null);
+		this.manager = new SelectionKeyManager();
+		if(ml!=null){
+		this.ml = ml;
+		}else{
+			try {
+				ml = new MonitorLog();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		buffer = ByteBuffer.allocate(1024*1024*4);
 		buffer.clear();
 		tc = new TimeCounter(10000);
@@ -57,13 +91,15 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 						+ channel.socket().getInetAddress().getHostAddress()
 						+ " fail,exclude the node!");
 				manager.addCancelInterest(inprocesskey);
+				deletenodeAction(inprocesskey);
 				return;
 			}
 			}catch(IOException e){
-				System.out.println("read node from "
+				System.out.println("IO Exception:read node from "
 						+ channel.socket().getInetAddress().getHostAddress()
 						+ " fail,exclude the node!");
 				manager.addCancelInterest(inprocesskey);
+				deletenodeAction(inprocesskey);
 				return;
 			}
 			//System.out.println("received a packet from"+channel.socket().getInetAddress().getHostName());
@@ -83,8 +119,6 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 
 	@Override
 	public synchronized void processWrite() throws IOException {
-	//	while((inprocesskey = manager.popNeedWriteKey()) != null){
-			//System.out.println("write a packet");
 			while(waitWritePipeLine.hasNext()){
 			segment se = waitWritePipeLine.popNode();
 			if(se !=null){
@@ -96,11 +130,12 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 			if(channel.write((ByteBuffer) buffer.flip()) < buffer.capacity()){
 				ml.warn("server send little bytes than expected!");
 			}
-			//System.out.println("write a segment to client");
+			System.out.println("[NIOServerHandler]write a segment to client:"+SystemUtil.byteToString(p.getArgs()));
 			}
 			manager.addReadInterest(inprocesskey);
 			}
-			}
+		
+		}
 		}
 
 	//}
@@ -110,10 +145,14 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 		// TODO Auto-generated method stub
 
 	}
+	/**
+	 * remove all data want to send to this key
+	 * @param key
+	 */
 	public void removeWriteKey(SelectionKey key){
 		waitWritePipeLine.removeNode(key);
 	}
-	public int receive(SocketChannel channel) throws IOException {
+	private int receive(SocketChannel channel) throws IOException {
 		buffer.clear();
 		buffer.limit(10);
 		channel.read(buffer);
@@ -159,43 +198,190 @@ public class NIOServerHandler implements INIOHandler,Runnable{
 		}
 		return argsize + 10;
 	}
+	public void init(){
+		System.out.println("start NIOServerHandler");
+		Thread t = new Thread(){
+			public void run(){
+				while(true)
+					synchronized(waitWritePipeLine){
+						try {
+							processWrite();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						waitWritePipeLine.notifyAll();
+					}
+			}
+		};
+		t.setDaemon(true);
+		t.start();
+	}
 	@Override
 	public void run() {
-		
+		init();
+		//1.open selector
+		try {
+			selector = Selector.open();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		//2.start server
+		try {
+			serverchannel = startServer(port, selector);
+		} catch (ClosedChannelException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		int signals = 0;
+		//3.check interest and accept channel;
 		while (true) {
+			CheckInterest();
 			try {
-				processWrite();
+				signals = selector.select(100);
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			inprocesskey = manager.popKey();
-			if (inprocesskey == null) {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			if (signals == 0) {
 				continue;
 			}
-			try {
-				if (inprocesskey.isReadable())
-				processRead();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			Iterator<SelectionKey> it = selector.selectedKeys().iterator();
+			SocketChannel channel = null;
+			while (it.hasNext()) {
+				SelectionKey key = it.next();
+				if(!key.isValid()){
+					it.remove();
+					continue;
+				}
+				if (key.isValid()&&key.isAcceptable()) {
+					System.out.println("[NIOServerHandler]accept a connection");
+					try {
+						channel = serverchannel.accept();
+						ml.log("accept a new connection from "
+								+ channel.socket().getInetAddress()
+										.getHostAddress());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					SelectionKey thiskey = registerChannel(selector, channel, SelectionKey.OP_READ);
+					it.remove();
+					//key.interestOps(key.interestOps() & (~key.readyOps()));
+					//pushWriteSegement(thiskey,new packet(BasicMessage.NODE,BasicMessage.OP_MESSAGE,"hello world11!"));
+					//pushWriteSegement(thiskey,new packet(BasicMessage.NODE,BasicMessage.OP_MESSAGE,"hello world22!"));
+					continue;
+				}
+				it.remove();
+                // The key indexes into the selector so you  
+                // can retrieve the socket that's ready for I/O  
+                execute(key); 
 			}
+
 		}
+	}
+	public void DataRecvAction(SelectionKey key) {
 		
 	}
+	public void deletenodeAction(SelectionKey key) {
+		
+		
+	}
+	private void execute(SelectionKey key) {
+		if(key.isReadable()){
+			inprocesskey = key;
+			try {
+				processRead();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			DataRecvAction(key);
+		}
+	}
+	private SelectionKey registerChannel(Selector selector, SocketChannel channel,
+			int opRead) {
+
+		if (channel == null) {
+			return null;
+		}
+		try {
+			channel.configureBlocking(false);
+			return channel.register(selector, opRead);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+	/**
+	 * check all the registered need read key and need cancel key;
+	 */
+	private void CheckInterest() {
+		while (true) {
+			SelectionKey key = manager.popNeedReadKey();
+			if (key != null && key.isValid()) {
+				key.interestOps(key.interestOps() & (~key.readyOps()));
+				key.interestOps(SelectionKey.OP_READ);
+			} else {
+				break;
+			}
+		}
+		while (true) {
+			SelectionKey key = manager.popNeedCancelKey();
+			if (key != null) {
+				ml.log("add node from "
+						+ ((SocketChannel) key.channel()).socket()
+								.getInetAddress().getHostAddress()+" to delete node");
+				manager.deletenode(key);
+				deletenodeAction(key);
+				key.cancel();
+			} else {
+				break;
+			}
+		}
+	}
+	private ServerSocketChannel startServer(int port, Selector selector) throws IOException,
+	ClosedChannelException {
+		ServerSocketChannel serverChannel = ServerSocketChannel.open();
+		serverChannel.configureBlocking(false);
+		ServerSocket serverSocket = serverChannel.socket();
+		serverSocket.bind(new InetSocketAddress(port));
+		serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+		return serverChannel;
+}
 	public segment getNewSegement() {
 		return pipeline.popNode();
 	}
+	public packet getChannelRecv(SelectionKey key){
+		//System.out.println("key is :"+key.toString());
+		//System.out.println("pipeline is null?"+(pipeline == null));
+		return pipeline.popNode(key);
+	}
 	public void pushWriteSegement(SelectionKey key,packet p){
+		synchronized(waitWritePipeLine){
 		waitWritePipeLine.addNode(key, p);
+		waitWritePipeLine.notifyAll();
+		}
 	}
 	public SelectionKeyManager getNodeList(){
 		return manager;
+	}
+	public void flush(){
+		synchronized(waitWritePipeLine){
+		try {
+			processWrite();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		waitWritePipeLine.notifyAll();
+		}
+	}
+	public void close(){
+		try {
+			selector.close();
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
 	}
 }

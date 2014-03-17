@@ -29,6 +29,7 @@ SimpleDateFormat DateFormat = new SimpleDateFormat(
 	Date date = new Date();
 	public DisLogObj(String port) {
 		server = ServerUtil.startServerHandler(port);
+		new Thread(server).start();
 		StackTraceElement stack[] = (new Throwable()).getStackTrace();
 		this.className = stack[2].getClassName();
 		try {
@@ -102,10 +103,12 @@ public void send(packet p,int level){
 		client.addSendPacket(new packet(BasicMessage.NODE,BasicMessage.OP_MESSAGE,b));		
 		}
 	}
-public segment receive(){
+public packet receive(){
 	if(server != null)
-	return server.getNewSegement();
-	return null;
+	return server.getNewSegement().p;
+	else{
+	return client.getReceivePacket();
+}
 }
 	/**
 	 * @param args

@@ -35,7 +35,6 @@ public synchronized static void processRequest(packet p){
 		}
 		while (true) {
 			while(!processRequestSendqueue.isEmpty()){
-				System.out.println("add send packet");
 				addSendPacket(processRequestSendqueue.pop());
 			}
 			try {
@@ -59,6 +58,14 @@ public synchronized static void processRequest(packet p){
 
 		}
 
+	}
+	public void flush() {
+		try {
+			processWrite();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
 	}
 
 }

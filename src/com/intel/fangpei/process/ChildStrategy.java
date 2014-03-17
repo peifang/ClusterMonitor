@@ -24,7 +24,7 @@ public class ChildStrategy extends Thread{
 	public String getLastWork(){
 		return lastwork;
 	}
-	public  boolean canDoNextWork(){	
+	public  boolean canDoNextWork(){
 		return true;
 	}
 	public void startStrategyRunner(NodeTaskTracker boss, ChildJvm taskManager){

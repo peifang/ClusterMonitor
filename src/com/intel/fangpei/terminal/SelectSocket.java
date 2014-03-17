@@ -31,91 +31,10 @@ import com.intel.fangpei.network.rpc.RpcServer;
  * 
  */
 public class SelectSocket {
-	SelectionKeyManager keymanager = new SelectionKeyManager();
-	Selector selector = null;
-	AdminManager ad = null;
 	public static int data = 0;
 	private static final int PORT_NUMBER = 1234;
 	public static MonitorLog ml = null;
 	private static int processThreadNum = 0;
-	/**
-	 * Start as common server ,the args contains port.
-	 */
-	public NIOServerHandler startAsCommonServer(String args){
-		ConfManager.addResource(null);
-		try {
-			ml = new MonitorLog();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		final String port = args;
-		try {
-			selector = Selector.open();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		NIOServerHandler serverHandler = new NIOServerHandler(ml,keymanager);
-		Thread t = new Thread(){
-			public void run(){
-		try {
-			startServer(Integer.parseInt(port), selector);
-			while (true) {
-				CheckInterest();
-				int n = selector.select(100);
-				if (n == 0) {
-					continue;
-				}
-				Iterator<SelectionKey> it = selector.selectedKeys().iterator();
-			while (it.hasNext()) {
-				SocketChannel channel = null;
-				SelectionKey key = it.next();
-				if(!key.isValid()){
-					it.remove();
-					continue;
-				}
-				if (key.isValid()&&key.isAcceptable()) {
-					ServerSocketChannel server = (ServerSocketChannel) key
-							.channel();
-					try {
-						channel = server.accept();
-						ml.log("accept a new connection from "
-								+ channel.socket().getInetAddress()
-										.getHostAddress());
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					registerChannel(selector, channel, SelectionKey.OP_READ);
-					it.remove();
-					continue;
-				}
-				it.remove();
-				key.interestOps(key.interestOps() & (~key.readyOps()));
-				keymanager.pushKey(key);
-			}
-
-		}
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClosedChannelException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-			}
-		};
-		t.setDaemon(true);
-		t.start();
-		Thread t2 = new Thread(serverHandler);
-		t2.setDaemon(true);
-		t2.start();
-		return serverHandler;
-	}
 	public static void main(String[] args) {
 		ConfManager.addResource(null);
 		try {
@@ -137,8 +56,6 @@ public class SelectSocket {
 			} catch (Exception e) {
 			}
 		}
-
-		try {
 			ml.log("/*Start depend on Process...");
 			ml.log("/*Start RPC Server...");
 			Thread t = new Thread(){
@@ -170,118 +87,15 @@ public class SelectSocket {
 //				System.out.println(line);
 //			}
 			ml.log("/*DataBase Server H2 have been started");
-			selector = Selector.open();
 			ml.log("/*Start " + processThreadNum + " Key handle Threads...");
-			for (int i = 0; i < processThreadNum; i++)
-				new Thread(new NIOProcess(selector, keymanager)).start();
+			SelectionKeyManager keymanager = new SelectionKeyManager();
 			ml.log("/*Key handle Threads had started!");
 			ml.log("/*Server Listening at port: " + PORT_NUMBER);
 			ml.log("/*Start Server...");
-			startServer(port, selector);
+			NIOServerHandler nioserverhandler = new NIOServerHandler(1234,ml,keymanager);
+			new Thread(nioserverhandler).start();
+			for (int i = 0; i < processThreadNum; i++)
+			new Thread(new NIOProcess(keymanager,nioserverhandler)).start();
 			ml.log("/*Server has been started!");
-			while (true) {
-				CheckInterest();
-				int n = selector.select(100);
-				if (n == 0) {
-					continue;
-				}
-				Iterator<SelectionKey> it = selector.selectedKeys().iterator();
-				while (it.hasNext()) {
-					SocketChannel channel = null;
-					SelectionKey key = it.next();
-					if(!key.isValid()){
-						it.remove();
-						continue;
-					}
-					if (key.isValid()&&key.isAcceptable()) {
-						ServerSocketChannel server = (ServerSocketChannel) key
-								.channel();
-						try {
-							channel = server.accept();
-							ml.log("accept a new connection from "
-									+ channel.socket().getInetAddress()
-											.getHostAddress());
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						registerChannel(selector, channel, SelectionKey.OP_READ);
-						it.remove();
-						continue;
-					}
-					it.remove();
-					key.interestOps(key.interestOps() & (~key.readyOps()));
-					keymanager.pushKey(key);
-				}
-
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void CheckInterest() {
-		while (true) {
-			SelectionKey key = keymanager.popNeedReadKey();
-			if (key != null && key.isValid()) {
-				key.interestOps(key.interestOps() & (~key.readyOps()));
-				key.interestOps(SelectionKey.OP_READ);
-			} else {
-				break;
-			}
-		}
-//		while (true) {
-//			SelectionKey key = keymanager.popNeedWriteKey();
-//			if (key != null && key.isValid()) {
-//				key.interestOps(key.interestOps() & (~key.readyOps()));
-//				key.interestOps(SelectionKey.OP_WRITE);
-//			} else {
-//				break;
-//			}
-//		}
-		while (true) {
-			SelectionKey key = keymanager.popNeedCancelKey();
-			if (key != null) {
-				ml.log("delete one node from "
-						+ ((SocketChannel) key.channel()).socket()
-								.getInetAddress().getHostAddress());
-				keymanager.deletenode(key);
-				key.cancel();
-			} else {
-				break;
-			}
-		}
-	}
-
-	private void startServer(int port, Selector selector) throws IOException,
-			ClosedChannelException {
-		ServerSocketChannel serverChannel = ServerSocketChannel.open();
-		serverChannel.configureBlocking(false);
-		ServerSocket serverSocket = serverChannel.socket();
-		serverSocket.bind(new InetSocketAddress(port));
-		serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-	}
-
-	private void registerChannel(Selector selector, SocketChannel channel,
-			int opRead) {
-
-		if (channel == null) {
-			return;
-		}
-		try {
-			channel.configureBlocking(false);
-			channel.register(selector, opRead);
-		} catch (IOException e) {
-
-		}
-
-	}
-	public void close(){
-		try {
-			selector.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println(e.getMessage());
-		}
 	}
 }

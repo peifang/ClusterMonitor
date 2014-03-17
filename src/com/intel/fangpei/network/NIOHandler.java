@@ -71,7 +71,7 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 		if(receive() == 0){
 			return;
 		}
-		if(Admin.debug)
+		//if(Admin.debug)
 		ml.log("[processread]read a packet!"+new String(args));
 		packet p = null;
 		/*
@@ -82,7 +82,7 @@ public class NIOHandler implements IConnection, INIOHandler, Runnable {
 		 else
 			p = new packet(clientType, command);
 		 synchronized(receivequeue){
-			receivequeue.push(p);
+			receivequeue.addLast(p);
 			receivequeue.notifyAll();
 		 }
 			argsize = 0; 

@@ -19,8 +19,7 @@ import com.intel.fangpei.terminal.SelectSocket;
 
 public class ServerUtil {
 public static NIOServerHandler startServerHandler(String port){
-	SelectSocket ss = new SelectSocket();
-	return ss.startAsCommonServer(port);
+	return new NIOServerHandler(Integer.parseInt(port),null);
 }
 	public static int SendToClient(SocketChannel channel, ByteBuffer buffer) {
 		buffer.flip();

@@ -17,13 +17,13 @@ public class SelectionKeyManager {
 	private MonitorLog ml = null;
 	// the cluster's nodes list
 	//private Collection<SelectionKey> nodes = new ArrayList<SelectionKey>();
-	private HashMap<SelectionKey,String> nodes = new HashMap<SelectionKey,String>();
+	protected HashMap<SelectionKey,String> nodes = new HashMap<SelectionKey,String>();
 	// the keys that is needed to process
 	private LinkedList<SelectionKey> keys = new LinkedList<SelectionKey>();
 	private SelectionKey lastone = null;
-	private LinkedList<SelectionKey> keys_read = new LinkedList<SelectionKey>();
+	protected LinkedList<SelectionKey> keys_read = new LinkedList<SelectionKey>();
 	//private LinkedList<SelectionKey> keys_write = new LinkedList<SelectionKey>();
-	private LinkedList<SelectionKey> keys_cancel = new LinkedList<SelectionKey>();
+	protected LinkedList<SelectionKey> keys_cancel = new LinkedList<SelectionKey>();
 	private LinkedList<SelectionKey> receivequeue = new LinkedList<SelectionKey>();
 	private SelectionKey Admin = null;
 

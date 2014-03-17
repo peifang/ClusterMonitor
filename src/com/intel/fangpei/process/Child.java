@@ -67,6 +67,7 @@ public class Child{
 	    t.setName("Thread for Logs");
 	    t.setDaemon(true);
 	    t.start();
+	    ml.log("child started!");
 	    //wait time for task prepare
 	    long millis = 10;
 	    packet inprocessTaskPacket = null;
@@ -75,7 +76,7 @@ public class Child{
 	          Thread.sleep(millis);
 	          continue;
 	        } else {
-	        	System.out.println("proccess "+jvmId+" recevied:"+new String(inprocessTaskPacket.getBuffer().array()));
+	        	System.out.println("child "+jvmId+" recevied:"+new String(inprocessTaskPacket.getBuffer().array()));
 	        	byte[] taskArgsbytes = inprocessTaskPacket.getArgs();
 	        	if(taskArgsbytes == null){
 	        		System.out.println("fack!!!-----------error");
@@ -89,7 +90,14 @@ public class Child{
 	        	 */
 	        	if(taskname.equals("break")){
 	        		ml.log("all work of the JVM:"+jvmId+"have complete.");
-	        		while(true)System.exit(0);
+	        		one = new packet(BasicMessage.NODE, BasicMessage.OP_QUIT,jvmId.getBytes());
+	        		node.addSendPacket(one);
+	        		node.flush();
+	        		Thread.sleep(1000);
+	        		while(true){
+	        			while(node.getReceivePacket()!=null);
+	        			System.exit(0);
+	        			}
 	        	}
 	        	ExtendTask task = null;
 	        	if(taskArgs.length > 1){

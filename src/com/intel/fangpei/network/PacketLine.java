@@ -42,6 +42,9 @@ private void addNode(packetNode node){
 	synchronized(lock){
 	if(len == 0){
 		head = end = node;
+		len++;
+		lock.notify();
+		return;
 	}
 	end.next = node;
 	end = end.next;
@@ -74,19 +77,69 @@ public boolean hasNext(){
 	}
 }
 /*
- * ÓÐ´ýÍêÉÆ;
+ * remove all node which key is this key
  */
 public void removeNode(SelectionKey key){
-	if(head.key == key){
+	synchronized(lock){
+	while(head.key == key){
 		head = head.next;
-		return;
+		len -- ;
 	}
-	packetNode p = head.next;
-	while(p != null){
-		if(p.key == key){
-			
+	if(head!=null&&head.next!=null){
+	packetNode pre = head;
+	packetNode pro = head.next;
+	while(pro != null){
+		if(pro.key == key){
+			pre.next = pro.next;
+			pro = pre.next;
+			len --;
+			continue;
 		}
+		pre = pro;
+		pro = pro.next;
 	}
+	end = pre;
+	}else{
+	end = head;
+	}
+	lock.notifyAll();
+	}
+}
+/**
+ * pop the first packet of the key
+ * @param key
+ * @return
+ */
+public packet popNode(SelectionKey key){
+	synchronized(lock){
+	if(head.key == key){
+		packet p = head.p;
+		head = head.next;
+		len -- ;
+		lock.notifyAll();
+		return p;
+	}
+	if(len > 1){
+	packetNode pre = head;
+	packetNode pro = head.next;
+	while(pro != null){
+		if(pro.key == key){
+			packet p = pro.p;
+			if(pro.next == null){
+				end = pre;
+			}
+			pre.next = pro.next;
+			len --;
+			lock.notifyAll();
+			return p;
+		}
+		pre = pro;
+		pro = pro.next;
+	}
+	}
+	lock.notifyAll();
+	}
+	return null;
 }
 public int remain(){
 	return len;

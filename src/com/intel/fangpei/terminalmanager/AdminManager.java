@@ -31,7 +31,7 @@ public class AdminManager extends SlaveManager{
 		// System.out.println("task"+buffer.mark()+" "+buffer.limit()+" "+buffer.remaining());
 		unpacket();
 		if (args != null)
-			System.out.println(((SocketChannel)admin.channel()).socket().getInetAddress()
+			System.out.println("[AdminManager]"+((SocketChannel)admin.channel()).socket().getInetAddress()
 					.getHostAddress()
 					+ ":" + new String(args) + "[end]");
 		if (command == BasicMessage.OP_QUIT) {

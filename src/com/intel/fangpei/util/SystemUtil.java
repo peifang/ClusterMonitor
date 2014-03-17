@@ -89,6 +89,11 @@ public static String buildSysPath(){
 	}
 	return "";
 }
+public static String byteToString(byte[] b){
+	if(b == null)
+		return "";
+	return new String(b);
+}
 public static void main(String[] args){
 	operationType();
 }
