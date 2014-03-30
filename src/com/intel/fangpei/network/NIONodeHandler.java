@@ -7,7 +7,12 @@ import java.util.LinkedList;
 import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.network.PacketLine.segment;
-
+/**
+ * <h2>help class</h2>
+ * <p>help Node to send and receive data with server</p>
+ * @author Administrator
+ *
+ */
 public class NIONodeHandler extends NIOHandler {
 	private static LinkedList<packet> processRequestSendqueue = new LinkedList<packet>();
 	public NIONodeHandler(String ip, int port) {

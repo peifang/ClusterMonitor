@@ -24,13 +24,12 @@ import com.intel.fangpei.util.SystemUtil;
 import com.intel.fangpei.util.TimeCounter;
 /**
  * Start as common server ,the args contains port.
+ * <p>this class also proccess server connection.It uses SelectionKeyManager to manager it's keys.</p>
  */
 public class NIOServerHandler implements INIOHandler,Runnable{
 	PacketLine pipeline = null;
 	PacketLine waitWritePipeLine = null;
 	Selector selector = null;
-//	private LinkedList<SelectionKey> sendqueue = new LinkedList<SelectionKey>();
-//	private LinkedList<SelectionKey> receivequeue = new LinkedList<SelectionKey>();
 	private SelectionKeyManager manager = null;
 	private SelectionKey inprocesskey = null;
 	private ByteBuffer buffer = null;

@@ -9,7 +9,12 @@ import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.SystemInfoCollector.SysInfo;
 import com.intel.fangpei.terminal.Admin;
-
+/**
+ * <h2>help class</h2>
+ * <p>help Admin to send and receive data with server</p>
+ * @author Administrator
+ *
+ */
 public class NIOAdminHandler extends NIOHandler {
 	public NIOAdminHandler(String ip, int port) {
 		super(ip, port);

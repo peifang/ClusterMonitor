@@ -12,17 +12,19 @@ import java.util.LinkedList;
 import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.util.ServerUtil;
-
+/**
+ * manager all cluster connection keys on this server.
+ * @author Administrator
+ *
+ */
 public class SelectionKeyManager {
 	private MonitorLog ml = null;
 	// the cluster's nodes list
-	//private Collection<SelectionKey> nodes = new ArrayList<SelectionKey>();
 	protected HashMap<SelectionKey,String> nodes = new HashMap<SelectionKey,String>();
 	// the keys that is needed to process
 	private LinkedList<SelectionKey> keys = new LinkedList<SelectionKey>();
 	private SelectionKey lastone = null;
 	protected LinkedList<SelectionKey> keys_read = new LinkedList<SelectionKey>();
-	//private LinkedList<SelectionKey> keys_write = new LinkedList<SelectionKey>();
 	protected LinkedList<SelectionKey> keys_cancel = new LinkedList<SelectionKey>();
 	private LinkedList<SelectionKey> receivequeue = new LinkedList<SelectionKey>();
 	private SelectionKey Admin = null;

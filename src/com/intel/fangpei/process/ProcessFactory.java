@@ -1,7 +1,11 @@
 package com.intel.fangpei.process;
 
 import org.apache.commons.lang.ArrayUtils;
-
+/**
+ * build new proccess factory.
+ * @author Administrator
+ *
+ */
 public class ProcessFactory {
 private static Proc oneproc = null;
 private volatile static int processNum = 0;

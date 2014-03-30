@@ -12,8 +12,6 @@ import java.util.Iterator;
 import org.apache.hadoop.hbase.client.Put;
 
 import com.intel.fangpei.BasicMessage.Bash;
-import com.intel.fangpei.FileSystem.Directory;
-import com.intel.fangpei.FileSystem.Ext4Dir;
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.task.DataSourcePool;
 import com.intel.fangpei.util.ConfManager;

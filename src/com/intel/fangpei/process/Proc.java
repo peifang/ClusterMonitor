@@ -10,7 +10,9 @@ import java.util.Map;
 
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.util.SystemUtil;
-
+/**
+ * a Proccess instance.
+ */
 public class Proc{
 	ProcOutPutHandler pioerror = null;
 	ProcOutPutHandler pioout = null;

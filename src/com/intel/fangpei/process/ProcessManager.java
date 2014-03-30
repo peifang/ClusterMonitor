@@ -3,9 +3,13 @@ package com.intel.fangpei.process;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+/**
+ * manager proc
+ * @author Administrator
+ *
+ */
 public class ProcessManager {
-	/***
+	/**
 	 * this serviceBoss is used for service Demo and 
 	 * other Thread work env.
 	 */

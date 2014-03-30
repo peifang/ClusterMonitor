@@ -16,7 +16,14 @@ import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.NIOProcess;
 import com.intel.fangpei.network.NIOServerHandler;
 import com.intel.fangpei.terminal.SelectSocket;
-
+/**
+ * <p>1 start a personal server</p>
+ * <p>2 send data to client</p>
+ * <p>3 attach file to key</p>
+ * <p>4 receive data from client</p>
+ * @author fangpei
+ *
+ */
 public class ServerUtil {
 public static NIOServerHandler startServerHandler(String port){
 	return new NIOServerHandler(Integer.parseInt(port),null);

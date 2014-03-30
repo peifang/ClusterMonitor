@@ -16,9 +16,6 @@ public class CommandPhraser {
 		if (s[0].equals("?")||s[0].equalsIgnoreCase("help")){
 			return BasicMessage.OP_HELP;
 		}
-		if (s[0].equals("file")) {
-			return BasicMessage.OP_lOAD_DISK;
-		}
 		if (s[0].equals("exec")) {
 			return BasicMessage.OP_EXEC;
 		}

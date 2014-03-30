@@ -9,7 +9,13 @@ import com.intel.fangpei.network.PacketLine.segment;
 import com.intel.fangpei.terminalmanager.AdminManager;
 import com.intel.fangpei.terminalmanager.ClientManager;
 import com.intel.fangpei.util.SystemUtil;
-
+/**
+ * this is a manager for server to receive and process
+ * packet from {@link com.intel.fangpei.terminal.Admin} 
+ * or  {@link com.intel.fangpei.terminal.Node}  
+ * @author fangpei
+ *
+ */
 public class NIOProcess implements Runnable {
 	private MonitorLog ml = null;
 	SelectionKeyManager keymanager = null;

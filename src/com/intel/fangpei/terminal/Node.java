@@ -13,7 +13,6 @@ import com.ali.fangpei.service.wrapWork;
 import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.ServiceMessage;
 import com.intel.fangpei.BasicMessage.packet;
-import com.intel.fangpei.FileSystem.Directory;
 import com.intel.fangpei.SystemInfoCollector.SysInfo;
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.NIONodeHandler;
@@ -26,7 +25,9 @@ import com.intel.fangpei.util.ClientUtil;
 import com.intel.fangpei.util.ConfManager;
 import com.intel.fangpei.util.ReflectFactory;
 import com.intel.fangpei.util.SystemUtil;
-
+/**
+ * start a Node proccess.
+ */
 public class Node extends Client {
 	MonitorLog ml = null;
 	SysInfo si = null;
@@ -219,31 +220,5 @@ public class Node extends Client {
 		tracker.send(serviceDemoJvmid,new wrapWork(classname,false));
 		return true;
 		
-	}
-	private boolean loadData_Disk(String[] args) {
-		String path = args[1];
-		File schema = new File(path);
-		if(!schema.exists()){
-			ml.error("Get a load data command ,but the schema path" +
-					" parameter isn't contain any usable schema file");
-			return false;	
-		}
-		long predictGenes = 0;
-		try{
-			predictGenes = Long.parseLong(args[2]);
-		}catch (Exception e){
-	ml.error("Get a load data command ,but the pridictgenes" +
-			" parameter is not a int or long type");
-			return false;
-		}
-		Directory d = new Directory();
-		d.initDir();
-//		DiskGeneDataTask g = new DiskGeneDataTask(ml,schema, predictGenes);
-//		DiskPutDataTask p = new DiskPutDataTask(ml,g, predictGenes,d);
-//		Thread a = new Thread(g);
-//		Thread b = new Thread(p);
-//		a.start();
-//		b.start();
-		return true;
 	}
 }

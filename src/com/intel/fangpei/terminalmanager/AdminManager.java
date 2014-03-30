@@ -1,12 +1,16 @@
 package com.intel.fangpei.terminalmanager;
 
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import com.intel.fangpei.BasicMessage.AppHandler;
 import com.intel.fangpei.BasicMessage.BasicMessage;
 import com.intel.fangpei.BasicMessage.ServiceMessage;
 import com.intel.fangpei.BasicMessage.packet;
@@ -14,10 +18,78 @@ import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.NIOServerHandler;
 import com.intel.fangpei.network.SelectionKeyManager;
 import com.intel.fangpei.util.ServerUtil;
-
+/**
+ * server use this class to communicate with Admin.
+ * @author fangpei
+ *
+ */
 public class AdminManager extends SlaveManager{
+	class ServerTaskMonitor{
+		//key taskid value map
+		private HashMap<Integer, HashMap<Integer, Double>> response = new HashMap<Integer,HashMap<Integer, Double>>();
+		public boolean newTask(int taskid){
+			if(response.containsKey(taskid)){
+				return false;
+			}
+			synchronized(response){
+			response.put(taskid,new HashMap<Integer, Double>());
+			response.notifyAll();
+			}
+			return true;
+		}
+		public boolean removeTask(int taskid){
+			synchronized(response){
+				if(response.remove(taskid) == null){
+					return false;
+				}
+				response.notifyAll();
+				return true;
+			}
+		}
+		public int taskCompleteNum(int taskid){
+			int count = 0;
+			synchronized(response){
+			if(response.containsKey(taskid)){
+				HashMap<Integer, Double> tmp = response.get(taskid);
+				Iterator<Entry<Integer, Double>> iter = tmp.entrySet().iterator();
+				while (iter.hasNext()) {
+				Map.Entry<Integer, Double> entry = (Map.Entry<Integer, Double>) iter.next();
+				int key = entry.getKey();
+				double value = entry.getValue();
+				if(value > 0.9999999){
+					count ++;
+				}
+				}
+			}
+			response.notifyAll();
+			}
+			return count;			
+		}
+		public void complete(int taskid,int childid,double percent){
+			synchronized(response){
+			if(response.containsKey(taskid)){
+				response.get(taskid).put(childid, percent);
+			}
+			response.notifyAll();
+			}
+		}
+	}
 	SelectionKey admin = null;
 	MonitorLog ml = null;
+	AppHandler handler = new AppHandler(1);
+	private ServerTaskMonitor tasks = new ServerTaskMonitor();
+	public boolean taskregister(int taskid){
+		return tasks.newTask(taskid);
+	}
+	public void taskcomplete(int taskid,int childid,double percent){
+		tasks.complete(taskid, childid, percent);
+	}
+	public int taskcompleteNum(int taskid){
+		return tasks.taskCompleteNum(taskid);
+	}
+	public void removeTask(int taskid){
+		//uncomplete
+	}
 	public AdminManager(MonitorLog ml,SelectionKey admin, SelectionKeyManager keymanager,NIOServerHandler nioserverhandler) {
 		super(keymanager,nioserverhandler);
 		this.ml = ml;
@@ -92,13 +164,6 @@ public class AdminManager extends SlaveManager{
 			keymanager.handleAllNodes(nioserverhandler,p);
 			packet reply = new packet(BasicMessage.SERVER, BasicMessage.OK);
 			nioserverhandler.pushWriteSegement(admin,reply);
-			break;
-		case BasicMessage.OP_lOAD_DISK:
-			p = new packet(BasicMessage.SERVER, command, args);
-			System.out.println("exec admin's load disk command!");
-			keymanager.handleAllNodes(nioserverhandler,p);
-			packet reply3 = new packet(BasicMessage.SERVER, BasicMessage.OK);
-			nioserverhandler.pushWriteSegement(admin,reply3);
 			break;
 		}
 		return "";

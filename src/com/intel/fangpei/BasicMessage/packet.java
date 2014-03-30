@@ -3,7 +3,11 @@ package com.intel.fangpei.BasicMessage;
 import java.nio.ByteBuffer;
 
 import com.intel.fangpei.logfactory.MonitorLog;
-
+/**
+ * basic class for data exchange on data format. 
+ * @author fangpei
+ *
+ */
 public class packet {
 	public int getVersion() {
 		return version;

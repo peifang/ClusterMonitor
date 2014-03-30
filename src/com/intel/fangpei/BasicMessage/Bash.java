@@ -2,7 +2,12 @@ package com.intel.fangpei.BasicMessage;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * 
+ * @author fangpei
+ * exec sh script class
+ * @param <type>
+ */
 public class Bash<type extends Object> {
 	private List<type> bash = new ArrayList<type>();
 	public List<type> toList(){

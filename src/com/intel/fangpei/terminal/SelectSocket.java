@@ -26,7 +26,7 @@ import com.intel.fangpei.network.rpc.RpcServer;
 
 /**
  * This is the main entrance for server to start up.
- * <p>If you want to start your own server ,you can use {@link #startAsCommonServer(String)} 
+ * <p>If you want to start your own server ,you can use {@link com.intel.fangpei.util.ServerUtil} 
  * @author fangpei
  * 
  */
@@ -67,26 +67,6 @@ public class SelectSocket {
 			};
 			t.setDaemon(true);
 			t.start();
-			ml.log("/*Start to Start Server H2 DataBase:");
-			//DataBase db = new DataBase();
-//			ProcessBuilder pb = new ProcessBuilder("java","-jar","InfoManager.jar");
-//			pb.directory(new File("C:\\Users\\peifang\\Desktop\\sys"));
-//			Map<String,String> m = pb.environment();	
-//			String classpath = m.get("CLASS_PATH");
-//			m.put("CLASS_PATH", classpath+";C:\\Users\\peifang\\Desktop\\sys\\InfoManager.jar;C:\\Users\\peifang\\Desktop\\sys\\h2-1.3.173.jar;C:\\Users\\peifang\\Desktop\\LIB\\hadoop-core-1.0.3-Intel.jar");
-//			Iterator enviterator = m.keySet().iterator();
-//			while(enviterator.hasNext()){
-//				Object key = enviterator.next();
-//				System.out.println(key+":"+m.get(key));
-//			}
-//			Process p = pb.start();
-//			InputStreamReader reader = new InputStreamReader(p.getErrorStream());
-//			BufferedReader bufferreader = new BufferedReader(reader);
-//			String line = null;
-//			while((line = bufferreader.readLine())!= null){
-//				System.out.println(line);
-//			}
-			ml.log("/*DataBase Server H2 have been started");
 			ml.log("/*Start " + processThreadNum + " Key handle Threads...");
 			SelectionKeyManager keymanager = new SelectionKeyManager();
 			ml.log("/*Key handle Threads had started!");

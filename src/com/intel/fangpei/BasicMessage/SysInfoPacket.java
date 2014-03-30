@@ -4,7 +4,11 @@ import java.util.HashMap;
 
 import com.intel.fangpei.SystemInfoCollector.SysInfo;
 import com.intel.fangpei.logfactory.MonitorLog;
-
+/**
+ * packet to transfer sysinfo data.
+ * @author Administrator
+ *
+ */
 public class SysInfoPacket {
 	MonitorLog ml = null;
 	public SysInfoPacket(MonitorLog ml ){

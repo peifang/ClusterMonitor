@@ -9,7 +9,11 @@ import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.network.NIOServerHandler;
 import com.intel.fangpei.network.SelectionKeyManager;
 import com.intel.fangpei.util.SystemUtil;
-
+/**
+ * server use this class to communicate with Node.
+ * @author fangpei
+ *
+ */
 public class ClientManager extends SlaveManager{
 	public ClientManager(SelectionKeyManager keymanager,NIOServerHandler nioserverhandler) {
 		super(keymanager,nioserverhandler);

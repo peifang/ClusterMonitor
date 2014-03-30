@@ -10,7 +10,11 @@ import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.network.NIOAdminHandler;
 import com.intel.fangpei.util.CommandPhraser;
 import com.intel.fangpei.util.ConfManager;
-
+/**
+ * start a Admin Proccess.
+ * @author fangpei
+ *
+ */
 public class Admin extends Client {
 	public static boolean debug = false;
 	/*
@@ -50,17 +54,6 @@ public class Admin extends Client {
 		byte COMMAND = CommandPhraser.GetUserInputCommand(command);
 		if(COMMAND == BasicMessage.OP_HELP){
 			printHelp();
-		}
-		if (COMMAND == BasicMessage.OP_lOAD_DISK) {
-			if(command.split(" ").length !=3){
-			System.out
-					.println("wrong parameter numbers for put data into disk" +
-							"\n\t[usage]file [schema path] [num]");
-			return "";
-			}
-			one = new packet(BasicMessage.ADMIN, COMMAND,
-					command.substring(command.indexOf(" "),
-							command.length()).getBytes());
 		}
 		if (COMMAND == BasicMessage.OP_EXEC) {
 			try{
@@ -103,28 +96,22 @@ public class Admin extends Client {
 		return "";// need to return the server's response!
 	}
 
-	private String formString(String[] s) {
-		StringBuilder sb = new StringBuilder();
-		int len = s.length;
-		for (int i = 0; i < len; i++) {
-			sb.append(" " + s[i]);
-		}
-		return sb.toString();
-	}
+//	private String formString(String[] s) {
+//		StringBuilder sb = new StringBuilder();
+//		int len = s.length;
+//		for (int i = 0; i < len; i++) {
+//			sb.append(" " + s[i]);
+//		}
+//		return sb.toString();
+//	}
 	public static void printHelp(){
 		System.out.println("the command line Admin Usage:");
-		System.out.println("exec          execute a class which extend ExtendHandler");
-		System.out.println("              idh");
-		System.out.println("                    start|stop  hdfs|hbase|zookeeper|mapreduce|all");
-		System.out.println("                    status");
-		System.out.println("file          Distributed generate data and load it on the disk ");
+		System.out.println("exec          execute a class which extend Extender");
 		System.out.println("progress      [not complete command,soon...]");
-		System.out.println("put           Distributed generate data and load it on HBase");
-		
-		System.out.println("create htable create htable with some options");
 		System.out.println("close         close the cluster's nodes demon");
 		System.out.println("quit          close the admin process");
 		System.out.println("sysinfo       get the cluster's system info");
+		System.out.println("service       execute a class which extend Extender in a Thread");
 	}
 	public static void main(String[] args) {
 		ConfManager.addResource(null);
