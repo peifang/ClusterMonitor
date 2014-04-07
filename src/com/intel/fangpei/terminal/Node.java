@@ -16,6 +16,8 @@ import com.intel.fangpei.BasicMessage.packet;
 import com.intel.fangpei.SystemInfoCollector.SysInfo;
 import com.intel.fangpei.logfactory.MonitorLog;
 import com.intel.fangpei.network.NIONodeHandler;
+import com.intel.fangpei.process.ChildStrategy;
+import com.intel.fangpei.process.MyChildStrategy;
 import com.intel.fangpei.process.ProcessFactory;
 import com.intel.fangpei.process.ProcessManager;
 import com.intel.fangpei.task.TaskRunner;
@@ -159,11 +161,69 @@ public class Node extends Client {
 			return true;
 		}
 	}
+	/**
+	 * added
+	 * @param classname
+	 * @return
+	 */
+	public boolean extendTask(String childStrategyName,String[] classname,int priority){
+		ChildStrategy childStrategy = getChildStrategy(childStrategyName);
+		TaskRunner tr = getTaskRunner(childStrategy,classname);
+		tracker.addNewTaskMonitorWithPriority(tr, priority);
+		return true;
+	}
+	private ChildStrategy getChildStrategy(String childStrategyName){
+		if(childStrategyName==null){
+			return new ChildStrategy();
+		}
+		ReflectFactory factory = ReflectFactory.getInstance();
+		Object obj;
+		try {
+			obj = factory.getClass(childStrategyName).newInstance();
+			if(obj instanceof ChildStrategy){
+				ml.log("return childstrategy: "+childStrategyName);
+				return (ChildStrategy)obj;
+			}
+			else{
+				
+				ml.log("cannot find childStrategy: "+childStrategyName);
+			 
+			}
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally{
+			System.out.println("cannot find childStrategy: "+childStrategyName+", return default childstrategy");
+			ml.log("return default childstrategy");
+			return new ChildStrategy();
+		}
+	}
+	/**
+	 * added 
+	 * @param classname
+	 * @return
+	 */
+	private TaskRunner getTaskRunner(ChildStrategy childStrategy,String[] classname){
+		TaskRunner tr = new TaskRunner();
+		TaskStrategy strate = null;
+		strate = new TaskStrategy();
+		strate.addStrategy(childStrategy,classname);
+		tr.setTaskStrategy(strate);
+		return tr;
+	}
 	private boolean extendTask(String  classname){
 		TaskRunner tr = new TaskRunner();
 		TaskStrategy strate = null;
 		strate = new TaskStrategy();
 		strate.addStrategy(tr.getDefaultStrategy(),new String[]{classname});
+		//strate.addStrategy(new MyChildStrategy(),new String[]{classname});
 		tr.setTaskStrategy(strate);
 		tracker.addNewTaskMonitor(tr);
 		/*
@@ -220,5 +280,16 @@ public class Node extends Client {
 		tracker.send(serviceDemoJvmid,new wrapWork(classname,false));
 		return true;
 		
+	}
+	/**
+	 * added for test
+	 */
+	public Node(){
+		try {
+			ml = new MonitorLog();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
+		tracker = new NodeTaskTracker(ml);//need port to pass in***
 	}
 }

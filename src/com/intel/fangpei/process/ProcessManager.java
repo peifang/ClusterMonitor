@@ -79,4 +79,8 @@ public static void start(int procid,File f){
 	start(procid);
 
 }
+public static int getFinishedJvmNum(){
+	
+	return alreadyFinished.size()+alreadyKilled.size();
+}
 }

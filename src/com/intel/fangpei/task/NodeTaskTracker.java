@@ -34,10 +34,11 @@ private NIOServerHandler serverhandler = null;
 private int taskid = 10000;
 private boolean isRunning = false;
 /***
- * bug:monitorlog Ð´ÈëÎÄ¼þ³åÍ»ÎÊÌâ
+ * bug:monitorlog Ð´ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½
  */
 private MonitorLog ml = null;
 private ArrayList<TaskRunner> runners = new ArrayList<TaskRunner>();
+NodeTaskManager ntm  = null;//added
 public NodeTaskTracker(MonitorLog ml){
 	serverhandler = new NIOServerHandler(4399,ml);
 	this.ml = ml;
@@ -50,6 +51,7 @@ public NodeTaskTracker(MonitorLog ml){
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
+	ntm = new NodeTaskManager();//added
 }
 public int nextTaskID(){
 	taskid++;
@@ -62,6 +64,16 @@ public void addNewTaskMonitor(TaskRunner tr){
 	runners.add(tr);
 	tr.setBoss(this);
 	new Thread(tr).start();
+}
+//added
+public synchronized void addNewTaskMonitorWithPriority(TaskRunner tr,Integer priority){
+	ntm.registerTaskRunner(tr, priority);
+	tr.setBoss(this);
+	if(!ntm.isStarted()){
+			System.out.println("NTM start!!!");
+			new Thread(ntm).start();
+		ntm.setStarted(true);
+	}	
 }
 public void send(int jvmId,SplitRunner cr){
 	server.send(jvmId, cr);

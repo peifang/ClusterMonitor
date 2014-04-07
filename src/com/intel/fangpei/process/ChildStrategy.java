@@ -32,6 +32,12 @@ public class ChildStrategy extends Thread{
 		//runner.setDaemon(true);
 		runner.start();
 	}
+	/**
+	 *  同一个jvm中的任务是否能执行分两条线：
+	 *  1.用户自定义的规则是否允许下一个任务执行
+	 *  2.当前jvm是否空闲
+	 *
+	 */
 	public class StartegyRunner extends Thread{
 		private NodeTaskTracker boss = null;
 		private ChildJvm taskManager = null;

@@ -38,4 +38,10 @@ public static int buildNewProcess(String... command){
 public static void setStartID(int processStartId){
 	processNum = processStartId;
 }
+/**
+ * added
+ */
+public static int getProcessNum(){
+	return processNum;
+}
 }

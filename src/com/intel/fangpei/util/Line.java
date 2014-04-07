@@ -1,8 +1,8 @@
 package com.intel.fangpei.util;
 
 public class Line<K,V> {
-private Node head = null;
-private Node end = null;
+protected Node head = null;
+protected Node end = null;
 private int len =0;
 private Object lock = new Object();
 

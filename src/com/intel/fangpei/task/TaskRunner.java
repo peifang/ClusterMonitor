@@ -39,6 +39,7 @@ private int completeChilds = 0;
 private ChildStrategy defaultChildStrate = null;
 private TaskStrategy taskstrategy = null;
 private Object maplock = null;
+private boolean started =false;//added
 public TaskRunner(){
 	maplock = new Object();
 	//ChildIdTojvmId = new HashMap<SplitId,Integer>();
@@ -193,7 +194,7 @@ public void run() {
 	registeAllChildStrategy();
 	boss.report("complete TaskRunner init!");
 	waitForChildUp();
-	while(true){
+	while(true){//等rpc结束这个线程
 		if(taskstrategy.hasNewStrategy()){
 			registeAllChildStrategy();
 			waitForChildUp();
@@ -275,5 +276,17 @@ private void waitForChildUp() {
 		e.printStackTrace();
 	}
 	
+}
+//added
+public boolean isStarted(){
+	return started;
+}
+//added
+public void setStarted(boolean started) {
+	this.started = started;
+}
+//added
+public int getJvmNum(){
+	return taskstrategy.getJvmNum();
 }
 }
